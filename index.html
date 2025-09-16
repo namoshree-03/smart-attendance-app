@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance System (Vision API)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .container {
+            max-width: 1024px;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+        #attendance-photo-container {
+            position: relative;
+            max-width: 100%;
+            height: auto;
+        }
+        #webcam-video, #attendance-image-preview, #uploaded-image-preview {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        #attendance-canvas {
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">Smart Attendance System</h1>
+
+        <div id="status" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-8 hidden" role="alert">
+            <p id="status-message" class="font-bold"></p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <div id="auth-container" class="mb-8 hidden">
+                <p class="text-center text-gray-600 mb-4">Logging in to Firebase...</p>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            </div>
+
+            <div id="app-container" class="hidden">
+                <nav class="flex justify-center md:justify-start space-x-4 mb-8">
+                    <button id="nav-dashboard" class="px-4 py-2 rounded-lg text-gray-700 bg-gray-200 font-medium">Dashboard</button>
+                    <button id="nav-enroll" class="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200 font-medium">Enroll Student</button>
+                    <button id="nav-mark" class="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200 font-medium">Mark Attendance</button>
+                </nav>
+
+                <div id="page-dashboard" class="page">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-6">Dashboard</h2>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-blue-100 p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-blue-800 mb-2">Total Students Enrolled</h3>
+                            <p id="dashboard-total-students" class="text-4xl font-bold text-blue-900">0</p>
+                        </div>
+                        <div class="bg-green-100 p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-green-800 mb-2">Students Present Today</h3>
+                            <p id="dashboard-present-today" class="text-4xl font-bold text-green-900">0</p>
+                        </div>
+                        <div class="bg-yellow-100 p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-yellow-800 mb-2">Last Attendance Check</h3>
+                            <p id="dashboard-last-check" class="text-xl font-bold text-yellow-900">N/A</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t-2 border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Enrolled Students</h3>
+                        <div id="student-list-container">
+                            <p class="text-gray-500 text-center" id="no-students-message">No students enrolled yet.</p>
+                            <ul id="student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="page-enroll" class="page hidden">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-6">Enroll a Student</h2>
+                    <div class="md:w-2/3 lg:w-1/2 mx-auto">
+                        <form id="enroll-form">
+                            <div class="mb-4">
+                                <label for="student-name" class="block text-gray-700 font-medium mb-2">Student Name</label>
+                                <input type="text" id="student-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="mb-4">
+                                <label for="roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
+                                <input type="text" id="roll-number" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="mb-4">
+                                <label for="enroll-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
+                                <input type="file" id="enroll-image" accept="image/*" required class="w-full text-gray-700">
+                            </div>
+                            <div id="enroll-image-preview-container" class="relative mt-4 hidden">
+                                <img id="enroll-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                                <canvas id="enroll-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                            </div>
+                            <button type="submit" id="enroll-button" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                Enroll Student
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="page-mark" class="page hidden">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-6">Mark Attendance</h2>
+                    <div class="md:w-2/3 lg:w-1/2 mx-auto">
+                        
+                        <div class="flex space-x-2 mb-4">
+                            <button id="webcam-tab-button" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Use Webcam</button>
+                            <button id="upload-tab-button" class="flex-1 bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Upload Photo</button>
+                        </div>
+
+                        <div id="webcam-section">
+                            <div id="attendance-photo-container" class="relative">
+                                <video id="webcam-video" autoplay muted playsinline class="rounded-lg shadow-md hidden"></video>
+                                <canvas id="attendance-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                            </div>
+                            <div class="flex space-x-2 mt-4">
+                                <button id="start-webcam-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Webcam</button>
+                                <button id="take-photo-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Mark Attendance</button>
+                            </div>
+                        </div>
+
+                        <div id="upload-section" class="hidden">
+                            <form id="attendance-upload-form">
+                                <div class="mb-4">
+                                    <label for="attendance-image" class="block text-gray-700 font-medium mb-2">Upload Group Photo</label>
+                                    <input type="file" id="attendance-image" accept="image/*" required class="w-full text-gray-700">
+                                </div>
+                                <div id="uploaded-image-preview-container" class="relative mt-4 hidden">
+                                    <img id="uploaded-image-preview" src="#" alt="Uploaded Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                                    <canvas id="uploaded-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                                </div>
+                                <button type="submit" id="upload-mark-button" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                    Mark Attendance
+                                </button>
+                            </form>
+                        </div>
+
+
+                        <div id="attendance-results" class="mt-8 pt-4 border-t-2 border-gray-200 hidden">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-semibold text-gray-700">Today's Present Students</h3>
+                                <button id="screenshot-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                    Take Screenshot
+                                </button>
+                            </div>
+                            <ul id="present-students-list" class="list-disc list-inside text-gray-600">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div id="edit-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4 md:mx-auto shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Edit Student Info</h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-roll-number-original">
+                <div class="mb-4">
+                    <label for="edit-student-name" class="block text-gray-700 font-medium mb-2">Student Name</label>
+                    <input type="text" id="edit-student-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="edit-roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
+                    <input type="text" id="edit-roll-number" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="edit-image" class="block text-gray-700 font-medium mb-2">Upload New Face Image (Optional)</label>
+                    <input type="file" id="edit-image" accept="image/*" class="w-full text-gray-700">
+                </div>
+                <div id="edit-image-preview-container" class="relative mt-4 hidden">
+                    <img id="edit-image-preview" src="#" alt="New Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                    <canvas id="edit-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" id="cancel-edit" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200">Cancel</button>
+                    <button type="submit" id="save-edit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <footer class="mt-8 py-6 text-center text-sm text-gray-500 border-t-2 border-gray-200">
+        <p>&copy; 2025 Smart Attendance System. All rights reserved.</p>
+        <p>
+            An innovative concept by <strong>Om Doiphode</strong>.
+            <br>
+            Powered by modern web technologies and the powerful capabilities of Google's Firebase.
+        </p>
+    </footer>
+
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        // YOUR FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyCN2UNCt6ZkfDyDj41pQATgjGGpfvnsuQo",
+            authDomain: "smartattendance-a4cf6.firebaseapp.com",
+            projectId: "smartattendance-a4cf6",
+            storageBucket: "smartattendance-a4cf6.firebasestorage.app",
+            messagingSenderId: "124561541485",
+            appId: "1:124561541485:web:18ba0745ca7fbe2ec33264",
+            measurementId: "G-0RP9STN3J4"
+        };
+
+        // Initialize Firebase
+        let db, auth;
+        const appContainer = document.getElementById('app-container');
+        const authContainer = document.getElementById('auth-container');
+        const statusEl = document.getElementById('status');
+        const statusMessageEl = document.getElementById('status-message');
+
+        let faceMatcher = null;
+        let studentsCollection;
+
+        // UI elements for navigation
+        const navDashboard = document.getElementById('nav-dashboard');
+        const navEnroll = document.getElementById('nav-enroll');
+        const navMark = document.getElementById('nav-mark');
+
+        // UI elements for pages
+        const pageDashboard = document.getElementById('page-dashboard');
+        const pageEnroll = document.getElementById('page-enroll');
+        const pageMark = document.getElementById('page-mark');
+
+        // UI elements for Enroll section
+        const enrollForm = document.getElementById('enroll-form');
+        const enrollImageInput = document.getElementById('enroll-image');
+        const enrollImagePreview = document.getElementById('enroll-image-preview');
+        const enrollImagePreviewContainer = document.getElementById('enroll-image-preview-container');
+        const enrollCanvas = document.getElementById('enroll-canvas');
+
+        // UI elements for Mark Attendance section
+        const webcamTabButton = document.getElementById('webcam-tab-button');
+        const uploadTabButton = document.getElementById('upload-tab-button');
+        const webcamSection = document.getElementById('webcam-section');
+        const uploadSection = document.getElementById('upload-section');
+        const webcamVideo = document.getElementById('webcam-video');
+        const startWebcamButton = document.getElementById('start-webcam-button');
+        const takePhotoButton = document.getElementById('take-photo-button');
+        const attendanceCanvas = document.getElementById('attendance-canvas');
+        const attendanceUploadForm = document.getElementById('attendance-upload-form');
+        const attendanceImageInput = document.getElementById('attendance-image');
+        const uploadedImagePreview = document.getElementById('uploaded-image-preview');
+        const uploadedImagePreviewContainer = document.getElementById('uploaded-image-preview-container');
+        const uploadedCanvas = document.getElementById('uploaded-canvas');
+
+        const attendanceResultsEl = document.getElementById('attendance-results');
+        const presentStudentsList = document.getElementById('present-students-list');
+        const screenshotButton = document.getElementById('screenshot-button');
+
+        let webcamStream = null;
+        let detectionInterval = null;
+
+        // UI elements for Dashboard section
+        const studentListEl = document.getElementById('student-list');
+        const noStudentsMessage = document.getElementById('no-students-message');
+        const dashboardTotalStudents = document.getElementById('dashboard-total-students');
+        const dashboardPresentToday = document.getElementById('dashboard-present-today');
+        const dashboardLastCheck = document.getElementById('dashboard-last-check');
+        
+        // UI elements for the Edit Modal
+        const editModal = document.getElementById('edit-modal');
+        const editForm = document.getElementById('edit-form');
+        const closeBtn = document.getElementById('close-modal');
+        const cancelBtn = document.getElementById('cancel-edit');
+        const editNameInput = document.getElementById('edit-student-name');
+        const editRollInput = document.getElementById('edit-roll-number');
+        const editOriginalRollInput = document.getElementById('edit-roll-number-original');
+        const editImageInput = document.getElementById('edit-image');
+        const editImagePreview = document.getElementById('edit-image-preview');
+        const editImagePreviewContainer = document.getElementById('edit-image-preview-container');
+        const editCanvas = document.getElementById('edit-canvas');
+
+        const MIN_DISTANCE_THRESHOLD = 0.5;
+
+        // Page navigation handler
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+
+            document.querySelectorAll('nav button').forEach(button => button.classList.remove('bg-gray-200'));
+            document.getElementById(`nav-${pageId.replace('page-', '')}`).classList.add('bg-gray-200');
+
+            if (pageId !== 'page-mark' && webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamVideo.classList.add('hidden');
+                startWebcamButton.classList.remove('hidden');
+                takePhotoButton.classList.add('hidden');
+                clearInterval(detectionInterval);
+            }
+        }
+
+        // Helper function to show status messages
+        function showStatus(message, type = 'info') {
+            statusMessageEl.textContent = message;
+            statusEl.classList.remove('hidden');
+            statusEl.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700', 'bg-red-100', 'border-red-500', 'text-red-700', 'bg-green-100', 'border-green-500', 'text-green-700');
+            if (type === 'info') {
+                statusEl.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
+            } else if (type === 'error') {
+                statusEl.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+            } else if (type === 'success') {
+                statusEl.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+            }
+        }
+
+        // Load face-api.js models from local directory
+        async function loadModels() {
+            showStatus('Loading face detection models...');
+            const modelsPath = './models/';
+            await faceapi.nets.ssdMobilenetv1.loadFromUri(modelsPath);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath);
+            showStatus('Models loaded successfully.', 'success');
+        }
+
+        // Initialize Firebase services and set up event listeners
+        async function initializeApp() {
+            try {
+                showStatus('Initializing Firebase...');
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+
+                authContainer.classList.remove('hidden');
+
+                // Anonymous Authentication
+                await auth.signInAnonymously();
+                
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        studentsCollection = db.collection('students');
+                        await updateFaceMatcher();
+                        await displayDashboardData();
+                        showPage('page-dashboard');
+                        authContainer.classList.add('hidden');
+                        appContainer.classList.remove('hidden');
+                    }
+                });
+
+                // Event Listeners for forms
+                enrollForm.addEventListener('submit', handleEnroll);
+                
+                // Event Listeners for navigation
+                navDashboard.addEventListener('click', () => showPage('page-dashboard'));
+                navEnroll.addEventListener('click', () => showPage('page-enroll'));
+                navMark.addEventListener('click', () => showPage('page-mark'));
+                
+                // Event Listeners for webcam and upload tabs
+                webcamTabButton.addEventListener('click', () => {
+                    webcamSection.classList.remove('hidden');
+                    uploadSection.classList.add('hidden');
+                    webcamTabButton.classList.add('bg-gray-200');
+                    webcamTabButton.classList.remove('bg-gray-50');
+                    uploadTabButton.classList.remove('bg-gray-200');
+                    uploadTabButton.classList.add('bg-gray-50');
+                });
+
+                uploadTabButton.addEventListener('click', () => {
+                    uploadSection.classList.remove('hidden');
+                    webcamSection.classList.add('hidden');
+                    uploadTabButton.classList.add('bg-gray-200');
+                    uploadTabButton.classList.remove('bg-gray-50');
+                    webcamTabButton.classList.remove('bg-gray-200');
+                    webcamTabButton.classList.add('bg-gray-50');
+                    if (webcamStream) {
+                        webcamStream.getTracks().forEach(track => track.stop());
+                        webcamVideo.classList.add('hidden');
+                        startWebcamButton.classList.remove('hidden');
+                        takePhotoButton.classList.add('hidden');
+                        clearInterval(detectionInterval);
+                    }
+                });
+                
+                // Webcam and file upload buttons
+                startWebcamButton.addEventListener('click', startWebcam);
+                takePhotoButton.addEventListener('click', () => handleAttendance(webcamVideo));
+                attendanceUploadForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const image = document.getElementById('uploaded-image-preview');
+                    if(image.src) {
+                        handleAttendance(image, uploadedCanvas);
+                    } else {
+                        showStatus('Please upload an image first.', 'error');
+                    }
+                });
+                attendanceImageInput.addEventListener('change', (e) => handleImagePreview(e, uploadedImagePreview, uploadedImagePreviewContainer));
+
+                // Edit modal listeners
+                closeBtn.addEventListener('click', () => {
+                    editModal.classList.add('hidden');
+                    editImageInput.value = ''; 
+                    editImagePreview.src = '#';
+                    editImagePreviewContainer.classList.add('hidden');
+                });
+                cancelBtn.addEventListener('click', () => {
+                    editModal.classList.add('hidden');
+                    editImageInput.value = ''; 
+                    editImagePreview.src = '#';
+                    editImagePreviewContainer.classList.add('hidden');
+                });
+                editForm.addEventListener('submit', handleEditStudent);
+                editImageInput.addEventListener('change', (e) => handleImagePreview(e, editImagePreview, editImagePreviewContainer));
+
+                await loadModels();
+            } catch (error) {
+                showStatus(`Firebase initialization failed: ${error.message}`, 'error');
+                console.error('Firebase initialization error:', error);
+            }
+        }
+
+        // Handle image preview
+        function handleImagePreview(event, imgElement, container) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imgElement.src = e.target.result;
+                    container.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imgElement.src = '#';
+                container.classList.add('hidden');
+            }
+        }
+
+        // Get face descriptor from an image
+        async function getFaceDescriptor(image) {
+            const detections = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor();
+            return detections ? detections.descriptor : null;
+        }
+
+        // Handle student enrollment
+        async function handleEnroll(event) {
+            event.preventDefault();
+            const name = document.getElementById('student-name').value;
+            const rollNumber = document.getElementById('roll-number').value;
+            const imageInput = document.getElementById('enroll-image');
+            const image = new Image();
+
+            const file = imageInput.files[0];
+            if (!file) {
+                showStatus('Please upload an image.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            await new Promise(resolve => reader.onload = () => {
+                image.src = reader.result;
+                resolve();
+            });
+
+            showStatus('Processing image and extracting face descriptor...');
+            const descriptor = await getFaceDescriptor(image);
+
+            if (!descriptor) {
+                showStatus('No face detected. Please upload a clearer photo.', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Saving student data to Firestore...');
+                await studentsCollection.doc(rollNumber).set({
+                    name: name,
+                    rollNumber: rollNumber,
+                    descriptor: Array.from(descriptor),
+                    attendanceHistory: []
+                });
+                showStatus(`Student ${name} (Roll: ${rollNumber}) enrolled successfully!`, 'success');
+                await updateFaceMatcher();
+                await displayDashboardData();
+                enrollForm.reset();
+                enrollImagePreviewContainer.classList.add('hidden');
+                showPage('page-dashboard');
+            } catch (error) {
+                showStatus(`Failed to enroll student: ${error.message}`, 'error');
+                console.error('Enrollment error:', error);
+            }
+        }
+        
+        // Open the edit modal with student info
+        function openEditModal(studentData) {
+            editNameInput.value = studentData.name;
+            editRollInput.value = studentData.rollNumber;
+            editOriginalRollInput.value = studentData.rollNumber;
+            editImageInput.value = '';
+            editImagePreview.src = '#';
+            editImagePreviewContainer.classList.add('hidden');
+            editModal.classList.remove('hidden');
+        }
+
+        // Handle editing student info
+        async function handleEditStudent(event) {
+            event.preventDefault();
+            const newName = editNameInput.value;
+            const newRollNumber = editRollInput.value;
+            const originalRollNumber = editOriginalRollInput.value;
+            const newImageFile = editImageInput.files[0];
+
+            if (newName === '' || newRollNumber === '') {
+                showStatus('Name and Roll Number cannot be empty.', 'error');
+                return;
+            }
+
+            try {
+                let updatedData = {
+                    name: newName,
+                    rollNumber: newRollNumber
+                };
+                let newDescriptor = null;
+
+                if (newImageFile) {
+                    showStatus('Processing new face image...', 'info');
+                    const img = new Image();
+                    img.src = URL.createObjectURL(newImageFile);
+                    await new Promise(resolve => img.onload = resolve);
+                    newDescriptor = await getFaceDescriptor(img);
+                    URL.revokeObjectURL(img.src);
+
+                    if (!newDescriptor) {
+                        showStatus('No face detected in the new image. Please upload a clearer photo or try again.', 'error');
+                        return;
+                    }
+                    updatedData.descriptor = Array.from(newDescriptor);
+                }
+
+                if (newRollNumber !== originalRollNumber) {
+                    showStatus('Updating roll number and student data...', 'info');
+                    const studentSnapshot = await studentsCollection.doc(originalRollNumber).get();
+                    const studentData = studentSnapshot.data();
+                    
+                    if (studentData) {
+                        await studentsCollection.doc(newRollNumber).set({
+                            ...studentData,
+                            ...updatedData
+                        });
+                        await studentsCollection.doc(originalRollNumber).delete();
+                    }
+                } else {
+                    showStatus('Updating student information...', 'info');
+                    await studentsCollection.doc(originalRollNumber).update(updatedData);
+                }
+                
+                showStatus('Student information updated successfully!', 'success');
+                editModal.classList.add('hidden');
+                editImageInput.value = ''; 
+                editImagePreview.src = '#';
+                editImagePreviewContainer.classList.add('hidden');
+
+                await updateFaceMatcher();
+                await displayDashboardData();
+            } catch (error) {
+                showStatus(`Failed to update student: ${error.message}`, 'error');
+                console.error('Update error:', error);
+            }
+        }
+
+
+        // Function to delete a student from the database
+        async function handleRemoveStudent(rollNumber) {
+            showStatus(`Removing student with roll number ${rollNumber}...`, 'info');
+            try {
+                await studentsCollection.doc(rollNumber).delete();
+                showStatus(`Student with roll number ${rollNumber} removed successfully.`, 'success');
+                await updateFaceMatcher();
+                await displayDashboardData();
+            } catch (error) {
+                showStatus(`Failed to remove student: ${error.message}`, 'error');
+                console.error('Removal error:', error);
+            }
+        }
+
+        // Build a new FaceMatcher from the database
+        async function updateFaceMatcher() {
+            showStatus('Updating student database for attendance...');
+            const studentsSnapshot = await studentsCollection.get();
+            const labeledDescriptors = studentsSnapshot.docs.map(doc => {
+                const data = doc.data();
+                const descriptor = new Float32Array(data.descriptor);
+                return new faceapi.LabeledFaceDescriptors(data.name, [descriptor]);
+            });
+
+            if (labeledDescriptors.length > 0) {
+                faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, MIN_DISTANCE_THRESHOLD);
+                showStatus('Database updated. Ready for attendance.', 'success');
+            } else {
+                faceMatcher = null;
+                showStatus('No students enrolled yet. Please enroll a student first.', 'info');
+            }
+        }
+
+        // Display the list of enrolled students and their attendance
+        async function displayStudentList() {
+            const studentsSnapshot = await studentsCollection.get();
+            studentListEl.innerHTML = '';
+            if (studentsSnapshot.empty) {
+                noStudentsMessage.classList.remove('hidden');
+            } else {
+                noStudentsMessage.classList.add('hidden');
+                studentsSnapshot.forEach(doc => {
+                    const student = doc.data();
+                    const attendanceCount = student.attendanceHistory ? student.attendanceHistory.length : 0;
+                    const li = document.createElement('li');
+                    li.classList.add('flex', 'flex-col', 'md:flex-row', 'items-center', 'justify-between', 'bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm', 'cursor-pointer', 'transition', 'duration-200', 'hover:bg-gray-100');
+                    li.innerHTML = `
+                        <div class="flex-1 text-center md:text-left mb-2 md:mb-0">
+                            <p class="font-semibold text-gray-800">${student.name}</p>
+                            <p class="text-gray-600 text-sm">Roll: ${student.rollNumber} • Attendance: ${attendanceCount}</p>
+                        </div>
+                        <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition duration-200" onclick="event.stopPropagation(); handleRemoveStudent('${student.rollNumber}')">
+                            Remove
+                        </button>
+                    `;
+                    li.addEventListener('click', () => openEditModal(student));
+                    studentListEl.appendChild(li);
+                });
+            }
+        }
+
+        // Update dashboard stats
+        async function displayDashboardData() {
+            const studentsSnapshot = await studentsCollection.get();
+            const totalStudents = studentsSnapshot.size;
+            dashboardTotalStudents.textContent = totalStudents;
+            
+            const today = new Date().toISOString().slice(0, 10);
+            let presentTodayCount = 0;
+            
+            studentsSnapshot.forEach(doc => {
+                const student = doc.data();
+                if (student.attendanceHistory && student.attendanceHistory.includes(today)) {
+                    presentTodayCount++;
+                }
+            });
+            dashboardPresentToday.textContent = presentTodayCount;
+            
+            const lastCheck = localStorage.getItem('lastAttendanceCheck');
+            if (lastCheck) {
+                dashboardLastCheck.textContent = lastCheck;
+            }
+
+            await displayStudentList();
+        }
+
+        // Start the webcam stream and live detection
+        async function startWebcam() {
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                webcamVideo.srcObject = webcamStream;
+                webcamVideo.classList.remove('hidden');
+                uploadedImagePreviewContainer.classList.add('hidden');
+                attendanceCanvas.classList.remove('hidden');
+                startWebcamButton.classList.add('hidden');
+                takePhotoButton.classList.remove('hidden');
+
+                webcamVideo.onloadeddata = () => {
+                    attendanceCanvas.width = webcamVideo.videoWidth;
+                    attendanceCanvas.height = webcamVideo.videoHeight;
+                    const displaySize = { width: webcamVideo.videoWidth, height: webcamVideo.videoHeight };
+                    faceapi.matchDimensions(attendanceCanvas, displaySize);
+
+                    detectionInterval = setInterval(async () => {
+                        const detections = await faceapi.detectAllFaces(webcamVideo).withFaceLandmarks();
+                        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                        attendanceCanvas.getContext('2d').clearRect(0, 0, attendanceCanvas.width, attendanceCanvas.height);
+                        resizedDetections.forEach(detection => {
+                             const drawBox = new faceapi.draw.DrawBox(detection.detection.box, { label: 'Face' });
+                             drawBox.draw(attendanceCanvas);
+                        });
+                    }, 100);
+                };
+
+            } catch (err) {
+                console.error("Error accessing webcam: ", err);
+                showStatus('Could not access the webcam. Please ensure permissions are granted.', 'error');
+            }
+        }
+
+        // Handle attendance marking
+        async function handleAttendance(imageSource, canvasSource = attendanceCanvas) {
+            
+            if (!faceMatcher) {
+                showStatus('No students enrolled. Please enroll a student first.', 'error');
+                return;
+            }
+
+            // If webcam stream is active, stop it before processing
+            if (webcamStream) {
+                clearInterval(detectionInterval);
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamVideo.classList.add('hidden');
+                startWebcamButton.classList.remove('hidden');
+                takePhotoButton.classList.add('hidden');
+            }
+
+            showStatus('Processing photo and matching faces...', 'info');
+
+            let imageToProcess;
+            let canvasToDraw;
+
+            if (imageSource instanceof HTMLVideoElement) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = imageSource.videoWidth;
+                tempCanvas.height = imageSource.videoHeight;
+                tempCanvas.getContext('2d').drawImage(imageSource, 0, 0, tempCanvas.width, tempCanvas.height);
+                imageToProcess = tempCanvas;
+                canvasToDraw = attendanceCanvas; // use the webcam canvas
+            } else {
+                imageToProcess = imageSource;
+                canvasToDraw = canvasSource; // use the uploaded photo canvas
+            }
+
+
+            const detections = await faceapi.detectAllFaces(imageToProcess).withFaceLandmarks().withFaceDescriptors();
+
+            if (detections.length === 0) {
+                showStatus('No faces detected in the photo. Please take a different photo.', 'error');
+                return;
+            }
+
+            showStatus(`Detected ${detections.length} faces. Marking attendance...`);
+            
+            const presentStudents = new Set();
+            const displaySize = { width: imageToProcess.naturalWidth || imageToProcess.width, height: imageToProcess.naturalHeight || imageToProcess.height };
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+            
+            const context = canvasToDraw.getContext('2d');
+            context.clearRect(0, 0, canvasToDraw.width, canvasToDraw.height);
+            faceapi.matchDimensions(canvasToDraw, displaySize);
+
+            resizedDetections.forEach(detection => {
+                const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+                const box = detection.detection.box;
+
+                if (bestMatch.distance < MIN_DISTANCE_THRESHOLD) {
+                    const studentName = bestMatch.label;
+                    presentStudents.add(studentName);
+                    
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: `${studentName}` });
+                    drawBox.draw(canvasToDraw);
+                } else {
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: 'Unknown' });
+                    drawBox.draw(canvasToDraw);
+                }
+            });
+
+            const today = new Date().toISOString().slice(0, 10);
+            for (const name of presentStudents) {
+                const studentDoc = await studentsCollection.where('name', '==', name).limit(1).get();
+                if (!studentDoc.empty) {
+                    const doc = studentDoc.docs[0];
+                    const currentHistory = doc.data().attendanceHistory || [];
+                    if (!currentHistory.includes(today)) {
+                        currentHistory.push(today);
+                        await doc.ref.update({ attendanceHistory: currentHistory });
+                    }
+                }
+            }
+            
+            presentStudentsList.innerHTML = '';
+            if (presentStudents.size > 0) {
+                showStatus(`Attendance marked! ${presentStudents.size} students identified.`, 'success');
+                presentStudents.forEach(name => {
+                    const li = document.createElement('li');
+                    li.textContent = name;
+                    presentStudentsList.appendChild(li);
+                });
+            } else {
+                showStatus('No matching students found in the photo.', 'error');
+                const li = document.createElement('li');
+                li.textContent = 'No students identified.';
+                presentStudentsList.appendChild(li);
+            }
+            attendanceResultsEl.classList.remove('hidden');
+
+            localStorage.setItem('lastAttendanceCheck', new Date().toLocaleString());
+            await displayDashboardData();
+        }
+
+        // Handle screenshot functionality
+        function handleScreenshot() {
+            const attendanceContainer = document.getElementById('attendance-results');
+            html2canvas(attendanceContainer).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `attendance-report-${new Date().toISOString().slice(0, 10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // Start the application
+        initializeApp();
+    </script>
+</body>
+</html>
