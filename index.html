@@ -19,6 +19,7 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--blue-light);
+            transition: all 0.3s ease-in-out;
         }
         
         .container {
@@ -32,8 +33,29 @@
             padding: 2rem;
         }
 
+        /* New styles for the theme */
+        .theme-background {
+            background-image: url('https://source.unsplash.com/random/800x600?plant,home');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 2.5rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
         .btn-primary {
-            background-color: var(--blue-accent);
+            background-color: #1a1a1a;
             color: white;
             font-weight: 600;
             padding: 0.75rem 1.5rem;
@@ -41,20 +63,20 @@
             transition: all 0.2s ease-in-out;
         }
         .btn-primary:hover {
-            background-color: var(--blue-primary);
+            background-color: #333;
         }
 
         .btn-secondary {
             background-color: white;
-            color: var(--blue-primary);
+            color: #1a1a1a;
             font-weight: 600;
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
-            border: 1px solid var(--blue-primary);
+            border: 2px solid #1a1a1a;
             transition: all 0.2s ease-in-out;
         }
         .btn-secondary:hover {
-            background-color: var(--blue-light);
+            background-color: #f5f5f5;
         }
 
         .btn-link {
@@ -69,11 +91,12 @@
             border-radius: 0.5rem;
             font-size: 1rem;
             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: #f7f7f7;
         }
         .input-field:focus {
             outline: none;
-            border-color: var(--blue-accent);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.1);
         }
 
         canvas {
@@ -165,93 +188,162 @@
             </form>
         </div>
 
-        <div id="login-container" class="card md:w-2/3 lg:w-1/2 mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Sign In</h2>
-
-            <div class="flex space-x-4 mb-6">
-                <button id="faculty-tab" class="flex-1 px-4 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition duration-200">Faculty</button>
-                <button id="student-tab" class="flex-1 px-4 py-2 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-200">Student</button>
+        <div id="main-auth-page" class="theme-background">
+            <div id="auth-landing-page" class="theme-card">
+                <h1 class="text-3xl md:text-4xl font-semibold mb-8 text-gray-800 tracking-tight">Welcome</h1>
+                <p class="text-gray-500 mb-10">Sign in to your account</p>
+                <button id="login-nav-button" class="w-full btn-primary mb-4">Login</button>
+                <button id="register-nav-button" class="w-full btn-secondary mb-4">Register</button>
+                <a href="#" id="guest-link" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition duration-200">Continue as a guest</a>
             </div>
 
-            <form id="faculty-login-form">
-                <div class="mb-4">
-                    <label for="faculty-username" class="block text-gray-700 font-medium mb-2">Email</label>
-                    <input type="email" id="faculty-email" required class="input-field" placeholder="faculty@example.com">
+            <div id="login-container" class="theme-card hidden">
+                <div class="flex items-center mb-6">
+                    <button id="back-to-landing" class="text-gray-500 hover:text-gray-800 transition duration-200 mr-4 text-2xl font-bold">&larr;</button>
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-1">Welcome back!</h2>
+                        <p class="text-gray-500 text-sm">Glad to see you, Again!</p>
+                    </div>
                 </div>
-                <div class="mb-6">
-                    <label for="faculty-password" class="block text-gray-700 font-medium mb-2">Password</label>
-                    <input type="password" id="faculty-password" required class="input-field" placeholder="your_password">
-                </div>
-                <button type="submit" class="w-full btn-primary">
-                    Login as Faculty
-                </button>
-                <button type="button" id="show-faculty-create" class="w-full mt-4 btn-secondary">
-                    Create Account
-                </button>
-            </form>
 
-            <form id="faculty-create-form" class="hidden">
-                <div class="mb-4">
-                    <label for="new-faculty-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
-                    <input type="text" id="new-faculty-name" required class="input-field">
+                <div class="flex space-x-4 mb-6">
+                    <button id="faculty-tab" class="flex-1 px-4 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition duration-200">Faculty</button>
+                    <button id="student-tab" class="flex-1 px-4 py-2 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-200">Student</button>
                 </div>
-                <div class="mb-4">
-                    <label for="new-faculty-email" class="block text-gray-700 font-medium mb-2">Email</label>
-                    <input type="email" id="new-faculty-email" required class="input-field">
-                </div>
-                <div class="mb-6">
-                    <label for="new-faculty-password" class="block text-gray-700 font-medium mb-2">Password</label>
-                    <input type="password" id="new-faculty-password" required class="input-field">
-                </div>
-                <button type="submit" class="w-full btn-primary">
-                    Create Faculty Account
-                </button>
-                <button type="button" id="back-to-faculty-login" class="w-full mt-4 btn-secondary">
-                    Back to Login
-                </button>
-            </form>
 
-            <form id="student-login-form" class="hidden">
-                <div class="mb-4">
-                    <label for="student-email" class="block text-gray-700 font-medium mb-2">Email</label>
-                    <input type="email" id="student-email" required class="input-field" placeholder="student@example.com">
-                </div>
-                <div class="mb-6">
-                    <label for="student-password" class="block text-gray-700 font-medium mb-2">Password</label>
-                    <input type="password" id="student-password" required class="input-field" placeholder="your_password">
-                </div>
-                <button type="submit" class="w-full btn-primary">
-                    Login as Student
-                </button>
-                <button type="button" id="show-student-create" class="w-full mt-4 btn-secondary">
-                    Create Account
-                </button>
-            </form>
+                <form id="faculty-login-form">
+                    <div class="mb-4">
+                        <label for="faculty-email" class="sr-only">Email</label>
+                        <input type="email" id="faculty-email" required class="input-field" placeholder="Enter your email">
+                    </div>
+                    <div class="mb-2">
+                        <label for="faculty-password" class="sr-only">Password</label>
+                        <input type="password" id="faculty-password" required class="input-field" placeholder="Enter your password">
+                    </div>
+                    <div class="flex justify-end mb-6">
+                        <a href="#" class="text-xs text-gray-500 hover:underline">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="w-full btn-primary">
+                        Login
+                    </button>
+                    <div class="mt-4 flex items-center justify-center space-x-4">
+                        <span class="text-sm text-gray-500">Or login with</span>
+                        <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Google_D_Logo_%282019-2023%29.svg" alt="Google" class="w-5 h-5">
+                        </button>
+                        <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="w-5 h-5">
+                        </button>
+                    </div>
+                </form>
 
-            <form id="student-create-form" class="hidden">
-                <div class="mb-4">
-                    <label for="new-student-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
-                    <input type="text" id="new-student-name" required class="input-field">
+                <form id="student-login-form" class="hidden">
+                     <div class="mb-4">
+                        <label for="student-email" class="sr-only">Email</label>
+                        <input type="email" id="student-email" required class="input-field" placeholder="Enter your email">
+                    </div>
+                    <div class="mb-2">
+                        <label for="student-password" class="sr-only">Password</label>
+                        <input type="password" id="student-password" required class="input-field" placeholder="Enter your password">
+                    </div>
+                    <div class="flex justify-end mb-6">
+                        <a href="#" class="text-xs text-gray-500 hover:underline">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="w-full btn-primary">
+                        Login
+                    </button>
+                     <div class="mt-4 flex items-center justify-center space-x-4">
+                        <span class="text-sm text-gray-500">Or login with</span>
+                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Google_D_Logo_%282019-2023%29.svg" alt="Google" class="w-5 h-5">
+                         </button>
+                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="w-5 h-5">
+                         </button>
+                    </div>
+                </form>
+
+                <div class="mt-6 text-sm text-gray-500">
+                    Don't have an account? <a href="#" id="show-register-button" class="font-semibold text-blue-600 hover:underline">Register Now</a>
                 </div>
-                <div class="mb-4">
-                    <label for="new-student-email" class="block text-gray-700 font-medium mb-2">Email</label>
-                    <input type="email" id="new-student-email" required class="input-field">
+            </div>
+
+            <div id="register-container" class="theme-card hidden">
+                <div class="flex items-center mb-6">
+                    <button id="back-to-landing-from-register" class="text-gray-500 hover:text-gray-800 transition duration-200 mr-4 text-2xl font-bold">&larr;</button>
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-1">Hello!</h2>
+                        <p class="text-gray-500 text-sm">Register to get started</p>
+                    </div>
                 </div>
-                <div class="mb-4">
-                    <label for="new-student-roll" class="block text-gray-700 font-medium mb-2">Roll Number</label>
-                    <input type="text" id="new-student-roll" required class="input-field">
+
+                <div class="flex space-x-4 mb-6">
+                    <button id="new-faculty-tab" class="flex-1 px-4 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition duration-200">Faculty</button>
+                    <button id="new-student-tab" class="flex-1 px-4 py-2 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-200">Student</button>
                 </div>
-                <div class="mb-6">
-                    <label for="new-student-password" class="block text-gray-700 font-medium mb-2">Password</label>
-                    <input type="password" id="new-student-password" required class="input-field">
+
+                <form id="faculty-create-form" class="mb-4">
+                    <div class="mb-4">
+                        <label for="new-faculty-name" class="sr-only">Full Name</label>
+                        <input type="text" id="new-faculty-name" required class="input-field" placeholder="Full Name">
+                    </div>
+                    <div class="mb-4">
+                        <label for="new-faculty-email" class="sr-only">Email</label>
+                        <input type="email" id="new-faculty-email" required class="input-field" placeholder="Email">
+                    </div>
+                    <div class="mb-4">
+                        <label for="new-faculty-password" class="sr-only">Password</label>
+                        <input type="password" id="new-faculty-password" required class="input-field" placeholder="Password">
+                    </div>
+                    <button type="submit" class="w-full btn-primary">
+                        Register
+                    </button>
+                    <div class="mt-4 flex items-center justify-center space-x-4">
+                        <span class="text-sm text-gray-500">Or register with</span>
+                        <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Google_D_Logo_%282019-2023%29.svg" alt="Google" class="w-5 h-5">
+                         </button>
+                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="w-5 h-5">
+                         </button>
+                    </div>
+                </form>
+
+                <form id="student-create-form" class="hidden mb-4">
+                    <div class="mb-4">
+                        <label for="new-student-name" class="sr-only">Full Name</label>
+                        <input type="text" id="new-student-name" required class="input-field" placeholder="Full Name">
+                    </div>
+                    <div class="mb-4">
+                        <label for="new-student-email" class="sr-only">Email</label>
+                        <input type="email" id="new-student-email" required class="input-field" placeholder="Email">
+                    </div>
+                     <div class="mb-4">
+                        <label for="new-student-roll" class="sr-only">Roll Number</label>
+                        <input type="text" id="new-student-roll" required class="input-field" placeholder="Roll Number">
+                    </div>
+                    <div class="mb-4">
+                        <label for="new-student-password" class="sr-only">Password</label>
+                        <input type="password" id="new-student-password" required class="input-field" placeholder="Password">
+                    </div>
+                    <button type="submit" class="w-full btn-primary">
+                        Register
+                    </button>
+                     <div class="mt-4 flex items-center justify-center space-x-4">
+                        <span class="text-sm text-gray-500">Or register with</span>
+                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Google_D_Logo_%282019-2023%29.svg" alt="Google" class="w-5 h-5">
+                         </button>
+                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="w-5 h-5">
+                         </button>
+                    </div>
+                </form>
+
+                <div class="mt-6 text-sm text-gray-500">
+                    Already have an account? <a href="#" id="show-login-button" class="font-semibold text-blue-600 hover:underline">Login Now</a>
                 </div>
-                <button type="submit" class="w-full btn-primary">
-                    Create Student Account
-                </button>
-                <button type="button" id="back-to-student-login" class="w-full mt-4 btn-secondary">
-                    Back to Login
-                </button>
-            </form>
+            </div>
         </div>
 
         <div id="app-container" class="hidden">
@@ -573,6 +665,16 @@
         const studentEnrollmentLinkPage = document.getElementById('student-enrollment-link-page');
         
         // Login UI elements
+        const mainAuthPage = document.getElementById('main-auth-page');
+        const authLandingPage = document.getElementById('auth-landing-page');
+        const loginNavButton = document.getElementById('login-nav-button');
+        const registerNavButton = document.getElementById('register-nav-button');
+        const registerContainer = document.getElementById('register-container');
+        const backToLandingButton = document.getElementById('back-to-landing');
+        const backToLandingFromRegisterButton = document.getElementById('back-to-landing-from-register');
+        const showRegisterButton = document.getElementById('show-register-button');
+        const showLoginButton = document.getElementById('show-login-button');
+
         const facultyTab = document.getElementById('faculty-tab');
         const studentTab = document.getElementById('student-tab');
         const facultyLoginForm = document.getElementById('faculty-login-form');
@@ -583,13 +685,11 @@
         const facultyPasswordLogin = document.getElementById('faculty-password');
         const studentEmailLogin = document.getElementById('student-email');
         const studentPasswordLogin = document.getElementById('student-password');
-
-        // Login/Create Account buttons
-        const showFacultyCreateBtn = document.getElementById('show-faculty-create');
-        const backToFacultyLoginBtn = document.getElementById('back-to-faculty-login');
-        const showStudentCreateBtn = document.getElementById('show-student-create');
-        const backToStudentLoginBtn = document.getElementById('back-to-student-login');
         
+        // New register UI elements
+        const newFacultyTab = document.getElementById('new-faculty-tab');
+        const newStudentTab = document.getElementById('new-student-tab');
+
         // Student enrollment via link elements
         const enrollmentClassNameEl = document.getElementById('enrollment-class-name');
         const enrollLinkForm = document.getElementById('enroll-link-form');
@@ -734,6 +834,25 @@
             navBtn.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
             navBtn.classList.remove('text-gray-700');
         }
+        
+        // New Login Page functions
+        function showAuthLandingPage() {
+            authLandingPage.classList.remove('hidden');
+            loginContainer.classList.add('hidden');
+            registerContainer.classList.add('hidden');
+        }
+
+        function showLoginContainer() {
+            authLandingPage.classList.add('hidden');
+            loginContainer.classList.remove('hidden');
+            registerContainer.classList.add('hidden');
+        }
+
+        function showRegisterContainer() {
+            authLandingPage.classList.add('hidden');
+            loginContainer.classList.add('hidden');
+            registerContainer.classList.remove('hidden');
+        }
 
         // Helper function to show status messages
         function showStatus(message, type = 'info') {
@@ -792,7 +911,7 @@
                                 facultyView.classList.add('hidden');
                                 studentView.classList.remove('hidden');
                             }
-                            loginContainer.classList.add('hidden');
+                            mainAuthPage.classList.add('hidden');
                             appContainer.classList.remove('hidden');
                             showStatus(`Logged in as ${user.email} (${userRole})`, 'success');
                         } else {
@@ -805,7 +924,8 @@
                         currentUser = null;
                         userRole = null;
                         appContainer.classList.add('hidden');
-                        loginContainer.classList.remove('hidden');
+                        mainAuthPage.classList.remove('hidden');
+                        showAuthLandingPage();
                         showStatus('Please log in to continue.', 'info');
                     }
                 });
@@ -817,6 +937,14 @@
                 facultyLogoutButton.addEventListener('click', async () => {
                     await auth.signOut();
                 });
+
+                // New login page navigation listeners
+                loginNavButton.addEventListener('click', showLoginContainer);
+                registerNavButton.addEventListener('click', showRegisterContainer);
+                backToLandingButton.addEventListener('click', showAuthLandingPage);
+                backToLandingFromRegisterButton.addEventListener('click', showAuthLandingPage);
+                showRegisterButton.addEventListener('click', showRegisterContainer);
+                showLoginButton.addEventListener('click', showLoginContainer);
                 
                 // Faculty-specific listeners
                 addClassButton.addEventListener('click', () => {
@@ -1061,8 +1189,6 @@
         facultyTab.addEventListener('click', () => {
             facultyLoginForm.classList.remove('hidden');
             studentLoginForm.classList.add('hidden');
-            facultyCreateForm.classList.add('hidden');
-            studentCreateForm.classList.add('hidden');
             facultyTab.classList.add('bg-blue-600', 'text-white');
             facultyTab.classList.remove('bg-gray-200', 'text-gray-700');
             studentTab.classList.remove('bg-blue-600', 'text-white');
@@ -1072,32 +1198,28 @@
         studentTab.addEventListener('click', () => {
             studentLoginForm.classList.remove('hidden');
             facultyLoginForm.classList.add('hidden');
-            facultyCreateForm.classList.add('hidden');
-            studentCreateForm.classList.add('hidden');
             studentTab.classList.add('bg-blue-600', 'text-white');
             studentTab.classList.remove('bg-gray-200', 'text-gray-700');
             facultyTab.classList.remove('bg-blue-600', 'text-white');
             facultyTab.classList.add('bg-gray-200', 'text-gray-700');
         });
 
-        showFacultyCreateBtn.addEventListener('click', () => {
-            facultyLoginForm.classList.add('hidden');
+        newFacultyTab.addEventListener('click', () => {
             facultyCreateForm.classList.remove('hidden');
-        });
-
-        backToFacultyLoginBtn.addEventListener('click', () => {
-            facultyCreateForm.classList.add('hidden');
-            facultyLoginForm.classList.remove('hidden');
-        });
-
-        showStudentCreateBtn.addEventListener('click', () => {
-            studentLoginForm.classList.add('hidden');
-            studentCreateForm.classList.remove('hidden');
-        });
-
-        backToStudentLoginBtn.addEventListener('click', () => {
             studentCreateForm.classList.add('hidden');
-            studentLoginForm.classList.remove('hidden');
+            newFacultyTab.classList.add('bg-blue-600', 'text-white');
+            newFacultyTab.classList.remove('bg-gray-200', 'text-gray-700');
+            newStudentTab.classList.remove('bg-blue-600', 'text-white');
+            newStudentTab.classList.add('bg-gray-200', 'text-gray-700');
+        });
+
+        newStudentTab.addEventListener('click', () => {
+            studentCreateForm.classList.remove('hidden');
+            facultyCreateForm.classList.add('hidden');
+            newStudentTab.classList.add('bg-blue-600', 'text-white');
+            newStudentTab.classList.remove('bg-gray-200', 'text-gray-700');
+            newFacultyTab.classList.remove('bg-blue-600', 'text-white');
+            newFacultyTab.classList.add('bg-gray-200', 'text-gray-700');
         });
         
         // Faculty Class Management Functions
