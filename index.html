@@ -356,9 +356,9 @@
                         
                         <div class="flex justify-between items-center mb-6 p-4 bg-gray-100 rounded-lg">
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-700">Shareable Link</h3>
+                                <h3 class="text-lg font-semibold text-gray-700">Shareable Code</h3>
                                 <div class="flex items-center space-x-2 mt-2">
-                                     <input type="text" id="class-share-link" readonly class="input-field flex-grow bg-white cursor-pointer">
+                                     <span id="class-share-code" class="text-xl font-bold text-blue-900"></span>
                                      <button id="copy-link-button" class="btn-secondary px-4 py-2">Copy</button>
                                 </div>
                             </div>
@@ -366,7 +366,7 @@
 
                         <nav class="flex space-x-4 mb-8 border-b-2 border-gray-200">
                             <button id="nav-class-dashboard" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Dashboard</button>
-                            <button id="nav-class-enroll" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Enroll Student</button>
+                            <button id="nav-class-enroll" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600 hidden">Enroll Student</button>
                             <button id="nav-class-mark" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Mark Attendance</button>
                         </nav>
     
@@ -633,7 +633,7 @@
         const classDashboardLastCheck = document.getElementById('class-dashboard-last-check');
         const classStudentListEl = document.getElementById('class-student-list');
         const noClassStudentsMessage = document.getElementById('no-class-students-message');
-        const classShareLinkInput = document.getElementById('class-share-link');
+        const classShareCodeEl = document.getElementById('class-share-code');
         const copyLinkButton = document.getElementById('copy-link-button');
 
 
@@ -889,9 +889,12 @@
                 });
                 
                 copyLinkButton.addEventListener('click', () => {
-                    classShareLinkInput.select();
-                    document.execCommand("copy");
-                    showStatus('Link copied to clipboard!', 'success');
+                    navigator.clipboard.writeText(classShareCodeEl.textContent).then(() => {
+                        showStatus('Code copied to clipboard!', 'success');
+                    }).catch(err => {
+                        console.error('Failed to copy text: ', err);
+                        showStatus('Failed to copy code.', 'error');
+                    });
                 });
                 
                 // Faculty enrollment photo options
@@ -1176,7 +1179,7 @@
         async function openClassView(classId, className) {
              currentClassId = classId;
              currentClassTitle.textContent = className;
-             classShareLinkInput.value = `${window.location.origin}?classCode=${classId}`;
+             classShareCodeEl.textContent = classId;
              showPage('class-management-view');
              showClassPage('class-page-dashboard');
              await updateFaceMatcher(classId);
