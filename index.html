@@ -5,10 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Attendance System (Vision API)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --blue-primary: #1e40af; /* Deeper blue */
+            --blue-accent: #3b82f6; /* Lighter, vibrant blue */
+            --blue-light: #eff6ff; /* Very light blue for backgrounds */
+            --gray-text: #4b5563;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--blue-light);
+        }
+        
         .container {
             max-width: 1024px;
         }
+        
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        .btn-primary {
+            background-color: var(--blue-accent);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: var(--blue-primary);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--blue-primary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--blue-primary);
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: var(--blue-light);
+        }
+
+        .btn-link {
+            color: var(--blue-primary);
+            font-weight: 600;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--blue-accent);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        }
+
         canvas {
             position: absolute;
             top: 0;
@@ -30,142 +97,337 @@
             top: 0;
             left: 0;
         }
+        .class-card {
+            background-color: #e0f2fe; /* Light blue background */
+            border: 1px solid #93c5fd; /* Light blue border */
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-blue-50 font-sans">
 
     <div class="container mx-auto p-4 md:p-8">
 
-        <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">Smart Attendance System</h1>
+        <h1 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-8 tracking-tight">Smart Attendance System</h1>
 
-        <div id="status" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-8 hidden" role="alert">
-            <p id="status-message" class="font-bold"></p>
+        <div id="status" class="bg-blue-200 border-l-4 border-blue-600 text-blue-800 p-4 mb-8 hidden rounded-lg" role="alert">
+            <p id="status-message" class="font-semibold"></p>
+        </div>
+        
+        <div id="student-enrollment-link-page" class="card hidden md:w-2/3 lg:w-1/2 mx-auto">
+             <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Enroll in <span id="enrollment-class-name" class="text-blue-600"></span></h2>
+             <form id="enroll-link-form">
+                 <input type="hidden" id="enroll-link-class-code">
+                 <div class="mb-4">
+                     <label for="enroll-link-student-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                     <input type="text" id="enroll-link-student-name" required class="input-field">
+                 </div>
+                 <div class="mb-4">
+                     <label for="enroll-link-roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
+                     <input type="text" id="enroll-link-roll-number" required class="input-field">
+                 </div>
+                 <div class="mb-4">
+                     <label for="enroll-link-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
+                     <input type="file" id="enroll-link-image" accept="image/*" required class="w-full text-gray-700">
+                 </div>
+                 <div id="enroll-link-image-preview-container" class="relative mt-4 hidden">
+                     <img id="enroll-link-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                     <canvas id="enroll-link-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                 </div>
+                 <button type="submit" class="mt-4 w-full btn-primary">
+                     Enroll
+                 </button>
+                 <button type="button" id="back-to-main-from-enroll-link" class="w-full mt-4 btn-secondary">
+                     Go to Main Site
+                 </button>
+            </form>
         </div>
 
-        <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            <div id="auth-container" class="mb-8 hidden">
-                <p class="text-center text-gray-600 mb-4">Logging in to Firebase...</p>
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+        <div id="login-container" class="card md:w-2/3 lg:w-1/2 mx-auto">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Sign In</h2>
+
+            <div class="flex space-x-4 mb-6">
+                <button id="faculty-tab" class="flex-1 px-4 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition duration-200">Faculty</button>
+                <button id="student-tab" class="flex-1 px-4 py-2 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-200">Student</button>
             </div>
 
-            <div id="app-container" class="hidden">
-                <nav class="flex justify-center md:justify-start space-x-4 mb-8">
-                    <button id="nav-dashboard" class="px-4 py-2 rounded-lg text-gray-700 bg-gray-200 font-medium">Dashboard</button>
-                    <button id="nav-enroll" class="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200 font-medium">Enroll Student</button>
-                    <button id="nav-mark" class="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200 font-medium">Mark Attendance</button>
-                </nav>
+            <form id="faculty-login-form">
+                <div class="mb-4">
+                    <label for="faculty-username" class="block text-gray-700 font-medium mb-2">Faculty Username</label>
+                    <input type="text" id="faculty-username" required class="input-field" placeholder="admin">
+                </div>
+                <div class="mb-6">
+                    <label for="faculty-college-id" class="block text-gray-700 font-medium mb-2">College ID</label>
+                    <input type="text" id="faculty-college-id" required class="input-field" placeholder="CID123">
+                </div>
+                <button type="submit" class="w-full btn-primary">
+                    Login as Faculty
+                </button>
+                <button type="button" id="show-faculty-create" class="w-full mt-4 btn-secondary">
+                    Create Account
+                </button>
+                <p class="text-center text-gray-500 text-sm mt-4">Use 'admin' for username and 'CID123' for College ID.</p>
+            </form>
 
-                <div id="page-dashboard" class="page">
-                    <h2 class="text-2xl font-semibold text-gray-700 mb-6">Dashboard</h2>
-                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="bg-blue-100 p-6 rounded-lg shadow-md">
-                            <h3 class="text-lg font-semibold text-blue-800 mb-2">Total Students Enrolled</h3>
-                            <p id="dashboard-total-students" class="text-4xl font-bold text-blue-900">0</p>
-                        </div>
-                        <div class="bg-green-100 p-6 rounded-lg shadow-md">
-                            <h3 class="text-lg font-semibold text-green-800 mb-2">Students Present Today</h3>
-                            <p id="dashboard-present-today" class="text-4xl font-bold text-green-900">0</p>
-                        </div>
-                        <div class="bg-yellow-100 p-6 rounded-lg shadow-md">
-                            <h3 class="text-lg font-semibold text-yellow-800 mb-2">Last Attendance Check</h3>
-                            <p id="dashboard-last-check" class="text-xl font-bold text-yellow-900">N/A</p>
-                        </div>
+            <form id="faculty-create-form" class="hidden">
+                <div class="mb-4">
+                    <label for="new-faculty-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                    <input type="text" id="new-faculty-name" required class="input-field">
+                </div>
+                <div class="mb-4">
+                    <label for="new-faculty-id" class="block text-gray-700 font-medium mb-2">College ID</label>
+                    <input type="text" id="new-faculty-id" required class="input-field">
+                </div>
+                <div class="mb-6">
+                    <label for="new-faculty-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="new-faculty-password" required class="input-field">
+                </div>
+                <button type="submit" class="w-full btn-primary">
+                    Create Faculty Account
+                </button>
+                <button type="button" id="back-to-faculty-login" class="w-full mt-4 btn-secondary">
+                    Back to Login
+                </button>
+            </form>
+
+            <form id="student-login-form" class="hidden">
+                <div class="mb-4">
+                    <label for="student-roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
+                    <input type="text" id="student-roll-number" required class="input-field" placeholder="12345">
+                </div>
+                <div class="mb-6">
+                    <label for="student-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="student-password" required class="input-field" placeholder="your_password">
+                </div>
+                <button type="submit" class="w-full btn-primary">
+                    Login as Student
+                </button>
+                <button type="button" id="show-student-create" class="w-full mt-4 btn-secondary">
+                    Create Account
+                </button>
+                <p class="text-center text-gray-500 text-sm mt-4">Use '12345' for roll number and 'studentpass' for password.</p>
+            </form>
+
+            <form id="student-create-form" class="hidden">
+                <div class="mb-4">
+                    <label for="new-student-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                    <input type="text" id="new-student-name" required class="input-field">
+                </div>
+                <div class="mb-4">
+                    <label for="new-student-roll" class="block text-gray-700 font-medium mb-2">Roll Number</label>
+                    <input type="text" id="new-student-roll" required class="input-field">
+                </div>
+                <div class="mb-6">
+                    <label for="new-student-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="new-student-password" required class="input-field">
+                </div>
+                <button type="submit" class="w-full btn-primary">
+                    Create Student Account
+                </button>
+                <button type="button" id="back-to-student-login" class="w-full mt-4 btn-secondary">
+                    Back to Login
+                </button>
+            </form>
+        </div>
+
+        <div id="app-container" class="hidden">
+            <div id="student-view" class="hidden">
+                 <div class="card md:w-2/3 lg:w-1/2 mx-auto">
+                     <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Join Class</h2>
+                     <p class="text-gray-600 mb-4 text-center">Enter the class code provided by your faculty to join the class.</p>
+                     <form id="join-class-form">
+                         <div class="mb-4">
+                             <label for="class-code" class="block text-gray-700 font-medium mb-2">Class Code</label>
+                             <input type="text" id="class-code" required class="input-field" placeholder="e.g., CS101">
+                         </div>
+                         <button type="submit" id="join-class-button" class="w-full btn-primary">
+                             Join Class
+                         </button>
+                     </form>
+                     <div class="flex justify-center mt-6">
+                        <button id="logout-button-student" class="px-4 py-2 rounded-lg text-gray-700 bg-gray-200 hover:bg-gray-300 font-medium">Logout</button>
+                     </div>
+                 </div>
+            </div>
+
+            <div id="faculty-view" class="hidden">
+                <div id="faculty-main-dashboard" class="page">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-700">Faculty Dashboard</h2>
+                        <button id="logout-button-faculty-dash" class="btn-secondary">Logout</button>
                     </div>
-
-                    <div class="mt-8 pt-8 border-t-2 border-gray-200">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Enrolled Students</h3>
-                        <div id="student-list-container">
-                            <p class="text-gray-500 text-center" id="no-students-message">No students enrolled yet.</p>
-                            <ul id="student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                </ul>
-                        </div>
+                    <button id="add-class-button" class="mb-6 btn-primary">
+                        Add Class
+                    </button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <p class="text-gray-500 text-center col-span-full" id="no-classes-message">No classes created yet. Click 'Add Class' to create one.</p>
+                        <ul id="class-list" class="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            </ul>
                     </div>
                 </div>
 
-                <div id="page-enroll" class="page hidden">
-                    <h2 class="text-2xl font-semibold text-gray-700 mb-6">Enroll a Student</h2>
-                    <div class="md:w-2/3 lg:w-1/2 mx-auto">
-                        <form id="enroll-form">
+                <div id="add-class-view" class="page hidden">
+                    <div class="card md:w-2/3 lg:w-1/2 mx-auto">
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-6">Create a New Class</h2>
+                        <form id="add-class-form">
                             <div class="mb-4">
-                                <label for="student-name" class="block text-gray-700 font-medium mb-2">Student Name</label>
-                                <input type="text" id="student-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <label for="new-class-name" class="block text-gray-700 font-medium mb-2">Class Name</label>
+                                <input type="text" id="new-class-name" required class="input-field">
                             </div>
-                            <div class="mb-4">
-                                <label for="roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
-                                <input type="text" id="roll-number" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="mb-4">
-                                <label for="enroll-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
-                                <input type="file" id="enroll-image" accept="image/*" required class="w-full text-gray-700">
-                            </div>
-                            <div id="enroll-image-preview-container" class="relative mt-4 hidden">
-                                <img id="enroll-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
-                                <canvas id="enroll-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
-                            </div>
-                            <button type="submit" id="enroll-button" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
-                                Enroll Student
+                            <button type="submit" class="w-full btn-primary">
+                                Create Class
+                            </button>
+                            <button type="button" id="back-to-faculty-dashboard" class="w-full mt-4 btn-secondary">
+                                Back to Dashboard
                             </button>
                         </form>
+                        <div id="class-code-display" class="mt-8 pt-4 border-t-2 border-gray-200 hidden">
+                            <h3 class="text-xl font-semibold text-green-700 mb-2">Class Created Successfully!</h3>
+                            <p class="text-gray-600">Share this code with your students to enroll.</p>
+                            <p class="text-2xl font-bold text-green-900 mt-2" id="generated-class-code"></p>
+                        </div>
                     </div>
                 </div>
 
-                <div id="page-mark" class="page hidden">
-                    <h2 class="text-2xl font-semibold text-gray-700 mb-6">Mark Attendance</h2>
-                    <div class="md:w-2/3 lg:w-1/2 mx-auto">
+                <div id="class-management-view" class="page hidden">
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-6">
+                             <h2 class="text-2xl font-semibold text-gray-700" id="current-class-title"></h2>
+                             <button id="back-to-main-dashboard" class="btn-secondary">
+                                 &larr; Back
+                             </button>
+                        </div>
                         
-                        <div class="flex space-x-2 mb-4">
-                            <button id="webcam-tab-button" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Use Webcam</button>
-                            <button id="upload-tab-button" class="flex-1 bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Upload Photo</button>
-                        </div>
-
-                        <div id="webcam-section">
-                            <div id="attendance-photo-container" class="relative">
-                                <video id="webcam-video" autoplay muted playsinline class="rounded-lg shadow-md hidden"></video>
-                                <canvas id="attendance-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
-                            </div>
-                            <div class="flex space-x-2 mt-4">
-                                <button id="start-webcam-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Webcam</button>
-                                <button id="take-photo-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Mark Attendance</button>
-                            </div>
-                        </div>
-
-                        <div id="upload-section" class="hidden">
-                            <form id="attendance-upload-form">
-                                <div class="mb-4">
-                                    <label for="attendance-image" class="block text-gray-700 font-medium mb-2">Upload Group Photo</label>
-                                    <input type="file" id="attendance-image" accept="image/*" required class="w-full text-gray-700">
+                        <div class="flex justify-between items-center mb-6 p-4 bg-gray-100 rounded-lg">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Shareable Link</h3>
+                                <div class="flex items-center space-x-2 mt-2">
+                                     <input type="text" id="class-share-link" readonly class="input-field flex-grow bg-white cursor-pointer">
+                                     <button id="copy-link-button" class="btn-secondary px-4 py-2">Copy</button>
                                 </div>
-                                <div id="uploaded-image-preview-container" class="relative mt-4 hidden">
-                                    <img id="uploaded-image-preview" src="#" alt="Uploaded Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
-                                    <canvas id="uploaded-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
-                                </div>
-                                <button type="submit" id="upload-mark-button" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
-                                    Mark Attendance
-                                </button>
-                            </form>
+                            </div>
                         </div>
 
-
-                        <div id="attendance-results" class="mt-8 pt-4 border-t-2 border-gray-200 hidden">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-xl font-semibold text-gray-700">Today's Present Students</h3>
-                                <button id="screenshot-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
-                                    Take Screenshot
-                                </button>
+                        <nav class="flex space-x-4 mb-8 border-b-2 border-gray-200">
+                            <button id="nav-class-dashboard" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Dashboard</button>
+                            <button id="nav-class-enroll" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Enroll Student</button>
+                            <button id="nav-class-mark" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Mark Attendance</button>
+                        </nav>
+    
+                        <div id="class-page-dashboard" class="class-page">
+                            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div class="bg-blue-100 p-6 rounded-lg shadow-md">
+                                    <h3 class="text-lg font-semibold text-blue-800 mb-2">Total Students Enrolled</h3>
+                                    <p id="class-dashboard-total-students" class="text-4xl font-bold text-blue-900">0</p>
+                                </div>
+                                <div class="bg-green-100 p-6 rounded-lg shadow-md">
+                                    <h3 class="text-lg font-semibold text-green-800 mb-2">Students Present Today</h3>
+                                    <p id="class-dashboard-present-today" class="text-4xl font-bold text-green-900">0</p>
+                                </div>
+                                <div class="bg-yellow-100 p-6 rounded-lg shadow-md">
+                                    <h3 class="text-lg font-semibold text-yellow-800 mb-2">Last Attendance Check</h3>
+                                    <p id="class-dashboard-last-check" class="text-xl font-bold text-yellow-900">N/A</p>
+                                </div>
                             </div>
-                            <ul id="present-students-list" class="list-disc list-inside text-gray-600">
-                            </ul>
+                            <div class="mt-8 pt-8 border-t-2 border-gray-200">
+                                <h3 class="text-xl font-semibold text-gray-700 mb-4">Enrolled Students</h3>
+                                <div id="class-student-list-container">
+                                    <p class="text-gray-500 text-center" id="no-class-students-message">No students enrolled in this class yet.</p>
+                                    <ul id="class-student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        </ul>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div id="class-page-enroll" class="class-page hidden">
+                            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Enroll a Student</h2>
+                            <div class="md:w-2/3 lg:w-1/2 mx-auto">
+                                <form id="enroll-form">
+                                    <div class="mb-4">
+                                        <label for="student-name" class="block text-gray-700 font-medium mb-2">Student Name</label>
+                                        <input type="text" id="student-name" required class="input-field">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
+                                        <input type="text" id="roll-number" required class="input-field">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="enroll-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
+                                        <input type="file" id="enroll-image" accept="image/*" required class="w-full text-gray-700">
+                                    </div>
+                                    <div id="enroll-image-preview-container" class="relative mt-4 hidden">
+                                        <img id="enroll-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                                        <canvas id="enroll-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                                    </div>
+                                    <button type="submit" id="enroll-button" class="mt-4 w-full btn-primary">
+                                        Enroll Student
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+    
+                        <div id="class-page-mark" class="class-page hidden">
+                            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Mark Attendance</h2>
+                            <div class="md:w-2/3 lg:w-1/2 mx-auto">
+                                
+                                <div class="flex space-x-2 mb-4">
+                                    <button id="webcam-tab-button" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Use Webcam</button>
+                                    <button id="upload-tab-button" class="flex-1 bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Upload Photo</button>
+                                </div>
+    
+                                <div id="webcam-section">
+                                    <div id="attendance-photo-container" class="relative">
+                                        <video id="webcam-video" autoplay muted playsinline class="rounded-lg shadow-md hidden"></video>
+                                        <canvas id="attendance-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                                    </div>
+                                    <div class="flex space-x-2 mt-4">
+                                        <button id="start-webcam-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Webcam</button>
+                                        <button id="take-photo-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Mark Attendance</button>
+                                    </div>
+                                </div>
+    
+                                <div id="upload-section" class="hidden">
+                                    <form id="attendance-upload-form">
+                                        <div class="mb-4">
+                                            <label for="attendance-image" class="block text-gray-700 font-medium mb-2">Upload Group Photo</label>
+                                            <input type="file" id="attendance-image" accept="image/*" required class="w-full text-gray-700">
+                                        </div>
+                                        <div id="uploaded-image-preview-container" class="relative mt-4 hidden">
+                                            <img id="uploaded-image-preview" src="#" alt="Uploaded Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                                            <canvas id="uploaded-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                                        </div>
+                                        <button type="submit" id="upload-mark-button" class="mt-4 w-full btn-primary">
+                                            Mark Attendance
+                                        </button>
+                                    </form>
+                                </div>
+    
+    
+                                <div id="attendance-results" class="mt-8 pt-4 border-t-2 border-gray-200 hidden">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-xl font-semibold text-gray-700">Today's Present Students</h3>
+                                        <button id="screenshot-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                            Take Screenshot
+                                        </button>
+                                    </div>
+                                    <ul id="present-students-list" class="list-disc list-inside text-gray-600">
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
-
     </div>
 
     <div id="edit-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4 md:mx-auto shadow-lg">
+        <div class="card w-full max-w-sm mx-4 md:mx-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold">Edit Student Info</h3>
                 <button id="close-modal" class="text-gray-500 hover:text-gray-800">&times;</button>
@@ -174,11 +436,11 @@
                 <input type="hidden" id="edit-roll-number-original">
                 <div class="mb-4">
                     <label for="edit-student-name" class="block text-gray-700 font-medium mb-2">Student Name</label>
-                    <input type="text" id="edit-student-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="edit-student-name" required class="input-field">
                 </div>
                 <div class="mb-4">
                     <label for="edit-roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
-                    <input type="text" id="edit-roll-number" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="edit-roll-number" required class="input-field">
                 </div>
                 <div class="mb-4">
                     <label for="edit-image" class="block text-gray-700 font-medium mb-2">Upload New Face Image (Optional)</label>
@@ -191,7 +453,7 @@
 
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" id="cancel-edit" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200">Cancel</button>
-                    <button type="submit" id="save-edit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Save Changes</button>
+                    <button type="submit" id="save-edit" class="btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -229,22 +491,68 @@
         // Initialize Firebase
         let db, auth;
         const appContainer = document.getElementById('app-container');
-        const authContainer = document.getElementById('auth-container');
+        const loginContainer = document.getElementById('login-container');
         const statusEl = document.getElementById('status');
         const statusMessageEl = document.getElementById('status-message');
+        const studentLogoutButton = document.getElementById('logout-button-student');
+        const facultyLogoutButton = document.getElementById('logout-button-faculty-dash');
+        const studentView = document.getElementById('student-view');
+        const facultyView = document.getElementById('faculty-view');
+        const studentEnrollmentLinkPage = document.getElementById('student-enrollment-link-page');
+        
+        // Login UI elements
+        const facultyTab = document.getElementById('faculty-tab');
+        const studentTab = document.getElementById('student-tab');
+        const facultyLoginForm = document.getElementById('faculty-login-form');
+        const studentLoginForm = document.getElementById('student-login-form');
+        const facultyCreateForm = document.getElementById('faculty-create-form');
+        const studentCreateForm = document.getElementById('student-create-form');
+
+        // Login/Create Account buttons
+        const showFacultyCreateBtn = document.getElementById('show-faculty-create');
+        const backToFacultyLoginBtn = document.getElementById('back-to-faculty-login');
+        const showStudentCreateBtn = document.getElementById('show-student-create');
+        const backToStudentLoginBtn = document.getElementById('back-to-student-login');
+        
+        // Student class join elements
+        const joinClassForm = document.getElementById('join-class-form');
+        const enrollmentClassNameEl = document.getElementById('enrollment-class-name');
+        const enrollLinkForm = document.getElementById('enroll-link-form');
+        const enrollLinkClassCodeInput = document.getElementById('enroll-link-class-code');
+        const backToMainFromEnrollLinkBtn = document.getElementById('back-to-main-from-enroll-link');
+
+        // Faculty Class Management Elements
+        const facultyMainDashboard = document.getElementById('faculty-main-dashboard');
+        const addClassButton = document.getElementById('add-class-button');
+        const classListEl = document.getElementById('class-list');
+        const noClassesMessage = document.getElementById('no-classes-message');
+        const addClassView = document.getElementById('add-class-view');
+        const addClassForm = document.getElementById('add-class-form');
+        const backToFacultyDashboardBtn = document.getElementById('back-to-faculty-dashboard');
+        const classCodeDisplay = document.getElementById('class-code-display');
+        const generatedClassCodeEl = document.getElementById('generated-class-code');
+        const classManagementView = document.getElementById('class-management-view');
+        const currentClassTitle = document.getElementById('current-class-title');
+        const backToMainDashboardBtn = document.getElementById('back-to-main-dashboard');
+        const classDashboardNav = document.getElementById('nav-class-dashboard');
+        const classEnrollNav = document.getElementById('nav-class-enroll');
+        const classMarkNav = document.getElementById('nav-class-mark');
+        const classPageDashboard = document.getElementById('class-page-dashboard');
+        const classPageEnroll = document.getElementById('class-page-enroll');
+        const classPageMark = document.getElementById('class-page-mark');
+        const classDashboardTotalStudents = document.getElementById('class-dashboard-total-students');
+        const classDashboardPresentToday = document.getElementById('class-dashboard-present-today');
+        const classDashboardLastCheck = document.getElementById('class-dashboard-last-check');
+        const classStudentListEl = document.getElementById('class-student-list');
+        const noClassStudentsMessage = document.getElementById('no-class-students-message');
+        const classShareLinkInput = document.getElementById('class-share-link');
+        const copyLinkButton = document.getElementById('copy-link-button');
+
 
         let faceMatcher = null;
         let studentsCollection;
-
-        // UI elements for navigation
-        const navDashboard = document.getElementById('nav-dashboard');
-        const navEnroll = document.getElementById('nav-enroll');
-        const navMark = document.getElementById('nav-mark');
-
-        // UI elements for pages
-        const pageDashboard = document.getElementById('page-dashboard');
-        const pageEnroll = document.getElementById('page-enroll');
-        const pageMark = document.getElementById('page-mark');
+        let classesCollection;
+        let currentClassId = null;
 
         // UI elements for Enroll section
         const enrollForm = document.getElementById('enroll-form');
@@ -275,13 +583,6 @@
         let webcamStream = null;
         let detectionInterval = null;
 
-        // UI elements for Dashboard section
-        const studentListEl = document.getElementById('student-list');
-        const noStudentsMessage = document.getElementById('no-students-message');
-        const dashboardTotalStudents = document.getElementById('dashboard-total-students');
-        const dashboardPresentToday = document.getElementById('dashboard-present-today');
-        const dashboardLastCheck = document.getElementById('dashboard-last-check');
-        
         // UI elements for the Edit Modal
         const editModal = document.getElementById('edit-modal');
         const editForm = document.getElementById('edit-form');
@@ -301,30 +602,31 @@
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
             document.getElementById(pageId).classList.remove('hidden');
+        }
 
-            document.querySelectorAll('nav button').forEach(button => button.classList.remove('bg-gray-200'));
-            document.getElementById(`nav-${pageId.replace('page-', '')}`).classList.add('bg-gray-200');
-
-            if (pageId !== 'page-mark' && webcamStream) {
-                webcamStream.getTracks().forEach(track => track.stop());
-                webcamVideo.classList.add('hidden');
-                startWebcamButton.classList.remove('hidden');
-                takePhotoButton.classList.add('hidden');
-                clearInterval(detectionInterval);
-            }
+        function showClassPage(pageId) {
+            document.querySelectorAll('.class-page').forEach(page => page.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+            document.querySelectorAll('#class-management-view nav button').forEach(button => button.classList.remove('border-blue-600', 'text-gray-700', 'bg-gray-200'));
+            document.querySelectorAll('#class-management-view nav button').forEach(button => button.classList.add('text-gray-700'));
+            
+            const pageNavId = pageId.replace('class-page', 'nav-class');
+            const navBtn = document.getElementById(pageNavId);
+            navBtn.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
+            navBtn.classList.remove('text-gray-700');
         }
 
         // Helper function to show status messages
         function showStatus(message, type = 'info') {
             statusMessageEl.textContent = message;
             statusEl.classList.remove('hidden');
-            statusEl.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700', 'bg-red-100', 'border-red-500', 'text-red-700', 'bg-green-100', 'border-green-500', 'text-green-700');
+            statusEl.classList.remove('bg-blue-200', 'border-blue-600', 'text-blue-800', 'bg-red-200', 'border-red-600', 'text-red-800', 'bg-green-200', 'border-green-600', 'text-green-800');
             if (type === 'info') {
-                statusEl.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
+                statusEl.classList.add('bg-blue-200', 'border-blue-600', 'text-blue-800');
             } else if (type === 'error') {
-                statusEl.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+                statusEl.classList.add('bg-red-200', 'border-red-600', 'text-red-800');
             } else if (type === 'success') {
-                statusEl.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+                statusEl.classList.add('bg-green-200', 'border-green-600', 'text-green-800');
             }
         }
 
@@ -337,40 +639,73 @@
             await faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath);
             showStatus('Models loaded successfully.', 'success');
         }
+        
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
 
-        // Initialize Firebase services and set up event listeners
-        async function initializeApp() {
+        // Initialize the app after successful login
+        async function initializeApp(userRole) {
             try {
                 showStatus('Initializing Firebase...');
                 firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
                 db = firebase.firestore();
 
-                authContainer.classList.remove('hidden');
+                classesCollection = db.collection('classes');
 
-                // Anonymous Authentication
-                await auth.signInAnonymously();
+                if (userRole === 'faculty') {
+                    facultyView.classList.remove('hidden');
+                    studentView.classList.add('hidden');
+                    await displayFacultyDashboard();
+                } else if (userRole === 'student') {
+                    facultyView.classList.add('hidden');
+                    studentView.classList.remove('hidden');
+                }
+
+                loginContainer.classList.add('hidden');
+                appContainer.classList.remove('hidden');
                 
-                auth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        studentsCollection = db.collection('students');
-                        await updateFaceMatcher();
-                        await displayDashboardData();
-                        showPage('page-dashboard');
-                        authContainer.classList.add('hidden');
-                        appContainer.classList.remove('hidden');
-                    }
+                // General Logout Listeners
+                studentLogoutButton.addEventListener('click', () => {
+                    appContainer.classList.add('hidden');
+                    loginContainer.classList.remove('hidden');
+                    showStatus('You have been logged out.', 'info');
                 });
+                facultyLogoutButton.addEventListener('click', () => {
+                    appContainer.classList.add('hidden');
+                    loginContainer.classList.remove('hidden');
+                    showStatus('You have been logged out.', 'info');
+                });
+                
+                // Faculty-specific listeners
+                addClassButton.addEventListener('click', () => {
+                    showPage('add-class-view');
+                });
+                backToFacultyDashboardBtn.addEventListener('click', () => {
+                    showPage('faculty-main-dashboard');
+                });
+                addClassForm.addEventListener('submit', handleAddClass);
+                
+                // Class-specific listeners
+                backToMainDashboardBtn.addEventListener('click', () => {
+                    showPage('faculty-main-dashboard');
+                    displayFacultyDashboard();
+                });
+                classDashboardNav.addEventListener('click', () => {
+                    showClassPage('class-page-dashboard');
+                    displayClassDashboardData(currentClassId);
+                });
+                classEnrollNav.addEventListener('click', () => showClassPage('class-page-enroll'));
+                classMarkNav.addEventListener('click', () => showClassPage('class-page-mark'));
 
-                // Event Listeners for forms
+                // Enrollment and Attendance listeners (now inside the class view)
                 enrollForm.addEventListener('submit', handleEnroll);
-                
-                // Event Listeners for navigation
-                navDashboard.addEventListener('click', () => showPage('page-dashboard'));
-                navEnroll.addEventListener('click', () => showPage('page-enroll'));
-                navMark.addEventListener('click', () => showPage('page-mark'));
-                
-                // Event Listeners for webcam and upload tabs
                 webcamTabButton.addEventListener('click', () => {
                     webcamSection.classList.remove('hidden');
                     uploadSection.classList.add('hidden');
@@ -379,7 +714,6 @@
                     uploadTabButton.classList.remove('bg-gray-200');
                     uploadTabButton.classList.add('bg-gray-50');
                 });
-
                 uploadTabButton.addEventListener('click', () => {
                     uploadSection.classList.remove('hidden');
                     webcamSection.classList.add('hidden');
@@ -395,8 +729,6 @@
                         clearInterval(detectionInterval);
                     }
                 });
-                
-                // Webcam and file upload buttons
                 startWebcamButton.addEventListener('click', startWebcam);
                 takePhotoButton.addEventListener('click', () => handleAttendance(webcamVideo));
                 attendanceUploadForm.addEventListener('submit', (event) => {
@@ -410,26 +742,334 @@
                 });
                 attendanceImageInput.addEventListener('change', (e) => handleImagePreview(e, uploadedImagePreview, uploadedImagePreviewContainer));
 
-                // Edit modal listeners
-                closeBtn.addEventListener('click', () => {
-                    editModal.classList.add('hidden');
-                    editImageInput.value = ''; 
-                    editImagePreview.src = '#';
-                    editImagePreviewContainer.classList.add('hidden');
+                // Student-specific listener
+                joinClassForm.addEventListener('submit', (e) => {
+                     e.preventDefault();
+                     const classCode = document.getElementById('class-code').value;
+                     showStatus(`Attempting to join class with code: ${classCode}...`, 'info');
+                     // In a real application, this would check the class code against a database
+                     // For this fake UI, we'll just show a success message
+                     setTimeout(() => {
+                         showStatus(`Successfully joined class ${classCode}!`, 'success');
+                     }, 1500);
+                 });
+                
+                // Student enrollment via link listeners
+                enrollLinkForm.addEventListener('submit', handleEnrollViaLink);
+                backToMainFromEnrollLinkBtn.addEventListener('click', () => {
+                    window.location.href = window.location.origin;
                 });
-                cancelBtn.addEventListener('click', () => {
-                    editModal.classList.add('hidden');
-                    editImageInput.value = ''; 
-                    editImagePreview.src = '#';
-                    editImagePreviewContainer.classList.add('hidden');
+                
+                copyLinkButton.addEventListener('click', () => {
+                    classShareLinkInput.select();
+                    document.execCommand("copy");
+                    showStatus('Link copied to clipboard!', 'success');
                 });
-                editForm.addEventListener('submit', handleEditStudent);
-                editImageInput.addEventListener('change', (e) => handleImagePreview(e, editImagePreview, editImagePreviewContainer));
 
-                await loadModels();
+
             } catch (error) {
                 showStatus(`Firebase initialization failed: ${error.message}`, 'error');
                 console.error('Firebase initialization error:', error);
+            }
+        }
+        
+        // Initial app load logic
+        document.addEventListener('DOMContentLoaded', async () => {
+            const classCode = getParameterByName('classCode');
+            if (classCode) {
+                try {
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.firestore();
+                    const classDoc = await db.collection('classes').doc(classCode).get();
+                    if (classDoc.exists) {
+                        enrollmentClassNameEl.textContent = classDoc.data().className;
+                        enrollLinkClassCodeInput.value = classCode;
+                        studentEnrollmentLinkPage.classList.remove('hidden');
+                        loginContainer.classList.add('hidden');
+                    } else {
+                        showStatus('Invalid class code. Please check the link and try again.', 'error');
+                        loginContainer.classList.remove('hidden');
+                    }
+                } catch (error) {
+                     showStatus('An error occurred. Please try again.', 'error');
+                     console.error('Error fetching class data:', error);
+                     loginContainer.classList.remove('hidden');
+                }
+            } else {
+                loginContainer.classList.remove('hidden');
+            }
+        });
+
+        // Handle login form submission
+        facultyLoginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('faculty-username').value;
+            const collegeId = document.getElementById('faculty-college-id').value;
+
+            if (username === 'admin' && collegeId === 'CID123') {
+                showStatus('Faculty login successful!', 'success');
+                await loadModels();
+                initializeApp('faculty');
+            } else {
+                showStatus('Invalid faculty username or College ID. Please try again.', 'error');
+            }
+        });
+
+        studentLoginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const rollNumber = document.getElementById('student-roll-number').value;
+            const password = document.getElementById('student-password').value;
+
+            if (rollNumber === '12345' && password === 'studentpass') {
+                showStatus('Student login successful!', 'success');
+                initializeApp('student');
+            } else {
+                showStatus('Invalid student roll number or password. Please try again.', 'error');
+            }
+        });
+
+        // Handle create account form submission (fake)
+        facultyCreateForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            showStatus('Faculty account created successfully!', 'success');
+            facultyCreateForm.classList.add('hidden');
+            facultyLoginForm.classList.remove('hidden');
+        });
+
+        studentCreateForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            showStatus('Student account created successfully!', 'success');
+            studentCreateForm.classList.add('hidden');
+            studentLoginForm.classList.remove('hidden');
+        });
+
+        // Tab and form switching logic
+        facultyTab.addEventListener('click', () => {
+            facultyLoginForm.classList.remove('hidden');
+            studentLoginForm.classList.add('hidden');
+            facultyCreateForm.classList.add('hidden');
+            studentCreateForm.classList.add('hidden');
+            facultyTab.classList.add('bg-blue-600', 'text-white');
+            facultyTab.classList.remove('bg-gray-200', 'text-gray-700');
+            studentTab.classList.remove('bg-blue-600', 'text-white');
+            studentTab.classList.add('bg-gray-200', 'text-gray-700');
+        });
+
+        studentTab.addEventListener('click', () => {
+            studentLoginForm.classList.remove('hidden');
+            facultyLoginForm.classList.add('hidden');
+            facultyCreateForm.classList.add('hidden');
+            studentCreateForm.classList.add('hidden');
+            studentTab.classList.add('bg-blue-600', 'text-white');
+            studentTab.classList.remove('bg-gray-200', 'text-gray-700');
+            facultyTab.classList.remove('bg-blue-600', 'text-white');
+            facultyTab.classList.add('bg-gray-200', 'text-gray-700');
+        });
+
+        showFacultyCreateBtn.addEventListener('click', () => {
+            facultyLoginForm.classList.add('hidden');
+            facultyCreateForm.classList.remove('hidden');
+        });
+
+        backToFacultyLoginBtn.addEventListener('click', () => {
+            facultyCreateForm.classList.add('hidden');
+            facultyLoginForm.classList.remove('hidden');
+        });
+
+        showStudentCreateBtn.addEventListener('click', () => {
+            studentLoginForm.classList.add('hidden');
+            studentCreateForm.classList.remove('hidden');
+        });
+
+        backToStudentLoginBtn.addEventListener('click', () => {
+            studentCreateForm.classList.add('hidden');
+            studentLoginForm.classList.remove('hidden');
+        });
+        
+        // Faculty Class Management Functions
+        async function displayFacultyDashboard() {
+            showStatus('Fetching your classes...');
+            const classesSnapshot = await classesCollection.get();
+            classListEl.innerHTML = '';
+            if (classesSnapshot.empty) {
+                noClassesMessage.classList.remove('hidden');
+            } else {
+                noClassesMessage.classList.add('hidden');
+                classesSnapshot.forEach(doc => {
+                    const classData = doc.data();
+                    const li = document.createElement('li');
+                    li.classList.add('class-card');
+                    li.innerHTML = `
+                        <div class="flex-grow">
+                            <h3 class="font-semibold text-xl text-blue-800">${classData.className}</h3>
+                            <p class="text-sm text-blue-600 mt-1">Code: ${classData.classCode}</p>
+                        </div>
+                        <div class="flex mt-4 space-x-2">
+                            <button class="btn-primary text-sm px-4 py-2" onclick="openClassView('${doc.id}', '${classData.className}')">
+                                Open
+                            </button>
+                            <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" onclick="handleRemoveClass('${doc.id}')">
+                                Remove
+                            </button>
+                        </div>
+                    `;
+                    classListEl.appendChild(li);
+                });
+                showStatus('Classes loaded successfully.', 'success');
+            }
+        }
+
+        async function handleRemoveClass(classId) {
+            if (confirm("Are you sure you want to remove this class and all its students? This cannot be undone.")) {
+                showStatus(`Removing class with ID ${classId}...`, 'info');
+                try {
+                    const studentsSnapshot = await classesCollection.doc(classId).collection('students').get();
+                    const batch = db.batch();
+                    studentsSnapshot.docs.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+
+                    await classesCollection.doc(classId).delete();
+                    showStatus('Class and all its students removed successfully.', 'success');
+                    await displayFacultyDashboard();
+                } catch (error) {
+                    showStatus(`Failed to remove class: ${error.message}`, 'error');
+                    console.error('Removal error:', error);
+                }
+            }
+        }
+        
+        async function handleAddClass(event) {
+            event.preventDefault();
+            const className = document.getElementById('new-class-name').value;
+            const classCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            showStatus('Creating class...');
+            try {
+                await classesCollection.doc(classCode).set({
+                    className: className,
+                    classCode: classCode
+                });
+                generatedClassCodeEl.textContent = classCode;
+                classCodeDisplay.classList.remove('hidden');
+                showStatus('Class created successfully! You can find the code above.', 'success');
+                addClassForm.reset();
+            } catch (error) {
+                showStatus(`Failed to create class: ${error.message}`, 'error');
+                console.error('Class creation error:', error);
+            }
+        }
+        
+        async function openClassView(classId, className) {
+             currentClassId = classId;
+             currentClassTitle.textContent = className;
+             classShareLinkInput.value = `${window.location.origin}?classCode=${classId}`;
+             showPage('class-management-view');
+             showClassPage('class-page-dashboard');
+             await updateFaceMatcher(classId);
+             displayClassDashboardData(classId);
+        }
+
+        async function displayClassDashboardData(classId) {
+            const studentsInClassCollection = db.collection('classes').doc(classId).collection('students');
+            const studentsSnapshot = await studentsInClassCollection.get();
+            const totalStudents = studentsSnapshot.size;
+            classDashboardTotalStudents.textContent = totalStudents;
+            
+            const today = new Date().toISOString().slice(0, 10);
+            let presentTodayCount = 0;
+            
+            studentsSnapshot.forEach(doc => {
+                const student = doc.data();
+                if (student.attendanceHistory && student.attendanceHistory.includes(today)) {
+                    presentTodayCount++;
+                }
+            });
+            classDashboardPresentToday.textContent = presentTodayCount;
+            
+            const lastCheck = localStorage.getItem('lastAttendanceCheck-' + classId);
+            if (lastCheck) {
+                classDashboardLastCheck.textContent = lastCheck;
+            } else {
+                classDashboardLastCheck.textContent = 'N/A';
+            }
+
+            await displayClassStudentList(classId);
+        }
+
+        async function displayClassStudentList(classId) {
+            const studentsInClassCollection = db.collection('classes').doc(classId).collection('students');
+            const studentsSnapshot = await studentsInClassCollection.get();
+            classStudentListEl.innerHTML = '';
+            if (studentsSnapshot.empty) {
+                noClassStudentsMessage.classList.remove('hidden');
+            } else {
+                noClassStudentsMessage.classList.add('hidden');
+                studentsSnapshot.forEach(doc => {
+                    const student = doc.data();
+                    const attendanceCount = student.attendanceHistory ? student.attendanceHistory.length : 0;
+                    const li = document.createElement('li');
+                    li.classList.add('flex', 'flex-col', 'md:flex-row', 'items-center', 'justify-between', 'bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm', 'cursor-pointer', 'transition', 'duration-200', 'hover:bg-gray-100');
+                    li.innerHTML = `
+                        <div class="flex-1 text-center md:text-left mb-2 md:mb-0">
+                            <p class="font-semibold text-gray-800">${student.name}</p>
+                            <p class="text-gray-600 text-sm">Roll: ${student.rollNumber} • Attendance: ${attendanceCount}</p>
+                        </div>
+                        <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition duration-200" onclick="event.stopPropagation(); handleRemoveStudent('${student.rollNumber}', '${classId}')">
+                            Remove
+                        </button>
+                    `;
+                    li.addEventListener('click', () => openEditModal(student));
+                    classStudentListEl.appendChild(li);
+                });
+            }
+        }
+        
+        // Handle student enrollment via link
+        async function handleEnrollViaLink(event) {
+            event.preventDefault();
+            const classCode = document.getElementById('enroll-link-class-code').value;
+            const name = document.getElementById('enroll-link-student-name').value;
+            const rollNumber = document.getElementById('enroll-link-roll-number').value;
+            const imageInput = document.getElementById('enroll-link-image');
+            const image = new Image();
+            
+            const file = imageInput.files[0];
+            if (!file) {
+                showStatus('Please upload an image.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            await new Promise(resolve => reader.onload = () => {
+                image.src = reader.result;
+                resolve();
+            });
+            
+            showStatus('Processing image and enrolling...');
+            
+            try {
+                const descriptor = await getFaceDescriptor(image);
+                if (!descriptor) {
+                    showStatus('No face detected. Please upload a clearer photo.', 'error');
+                    return;
+                }
+                
+                const studentsInClassCollection = db.collection('classes').doc(classCode).collection('students');
+                await studentsInClassCollection.doc(rollNumber).set({
+                    name: name,
+                    rollNumber: rollNumber,
+                    descriptor: Array.from(descriptor),
+                    attendanceHistory: []
+                });
+                
+                showStatus(`Successfully enrolled in the class!`, 'success');
+                enrollLinkForm.reset();
+            } catch (error) {
+                showStatus(`Failed to enroll: ${error.message}`, 'error');
+                console.error('Enrollment error:', error);
             }
         }
 
@@ -455,7 +1095,7 @@
             return detections ? detections.descriptor : null;
         }
 
-        // Handle student enrollment
+        // Handle student enrollment (now class-specific)
         async function handleEnroll(event) {
             event.preventDefault();
             const name = document.getElementById('student-name').value;
@@ -486,24 +1126,25 @@
 
             try {
                 showStatus('Saving student data to Firestore...');
-                await studentsCollection.doc(rollNumber).set({
+                const studentsInClassCollection = db.collection('classes').doc(currentClassId).collection('students');
+                await studentsInClassCollection.doc(rollNumber).set({
                     name: name,
                     rollNumber: rollNumber,
                     descriptor: Array.from(descriptor),
                     attendanceHistory: []
                 });
                 showStatus(`Student ${name} (Roll: ${rollNumber}) enrolled successfully!`, 'success');
-                await updateFaceMatcher();
-                await displayDashboardData();
+                await updateFaceMatcher(currentClassId);
+                await displayClassDashboardData(currentClassId);
                 enrollForm.reset();
                 enrollImagePreviewContainer.classList.add('hidden');
-                showPage('page-dashboard');
+                showClassPage('class-page-dashboard');
             } catch (error) {
                 showStatus(`Failed to enroll student: ${error.message}`, 'error');
                 console.error('Enrollment error:', error);
             }
         }
-        
+
         // Open the edit modal with student info
         function openEditModal(studentData) {
             editNameInput.value = studentData.name;
@@ -515,7 +1156,7 @@
             editModal.classList.remove('hidden');
         }
 
-        // Handle editing student info
+        // Handle editing student info (now class-specific)
         async function handleEditStudent(event) {
             event.preventDefault();
             const newName = editNameInput.value;
@@ -549,32 +1190,34 @@
                     }
                     updatedData.descriptor = Array.from(newDescriptor);
                 }
+                
+                const studentsInClassCollection = db.collection('classes').doc(currentClassId).collection('students');
 
                 if (newRollNumber !== originalRollNumber) {
                     showStatus('Updating roll number and student data...', 'info');
-                    const studentSnapshot = await studentsCollection.doc(originalRollNumber).get();
+                    const studentSnapshot = await studentsInClassCollection.doc(originalRollNumber).get();
                     const studentData = studentSnapshot.data();
-                    
+
                     if (studentData) {
-                        await studentsCollection.doc(newRollNumber).set({
+                        await studentsInClassCollection.doc(newRollNumber).set({
                             ...studentData,
                             ...updatedData
                         });
-                        await studentsCollection.doc(originalRollNumber).delete();
+                        await studentsInClassCollection.doc(originalRollNumber).delete();
                     }
                 } else {
                     showStatus('Updating student information...', 'info');
-                    await studentsCollection.doc(originalRollNumber).update(updatedData);
+                    await studentsInClassCollection.doc(originalRollNumber).update(updatedData);
                 }
-                
+
                 showStatus('Student information updated successfully!', 'success');
                 editModal.classList.add('hidden');
-                editImageInput.value = ''; 
+                editImageInput.value = '';
                 editImagePreview.src = '#';
                 editImagePreviewContainer.classList.add('hidden');
 
-                await updateFaceMatcher();
-                await displayDashboardData();
+                await updateFaceMatcher(currentClassId);
+                await displayClassDashboardData(currentClassId);
             } catch (error) {
                 showStatus(`Failed to update student: ${error.message}`, 'error');
                 console.error('Update error:', error);
@@ -582,24 +1225,26 @@
         }
 
 
-        // Function to delete a student from the database
-        async function handleRemoveStudent(rollNumber) {
+        // Function to delete a student from the database (now class-specific)
+        async function handleRemoveStudent(rollNumber, classId) {
             showStatus(`Removing student with roll number ${rollNumber}...`, 'info');
             try {
-                await studentsCollection.doc(rollNumber).delete();
+                const studentsInClassCollection = db.collection('classes').doc(classId).collection('students');
+                await studentsInClassCollection.doc(rollNumber).delete();
                 showStatus(`Student with roll number ${rollNumber} removed successfully.`, 'success');
-                await updateFaceMatcher();
-                await displayDashboardData();
+                await updateFaceMatcher(classId);
+                await displayClassDashboardData(classId);
             } catch (error) {
                 showStatus(`Failed to remove student: ${error.message}`, 'error');
                 console.error('Removal error:', error);
             }
         }
 
-        // Build a new FaceMatcher from the database
-        async function updateFaceMatcher() {
+        // Build a new FaceMatcher from the database (now class-specific)
+        async function updateFaceMatcher(classId) {
             showStatus('Updating student database for attendance...');
-            const studentsSnapshot = await studentsCollection.get();
+            const studentsInClassCollection = db.collection('classes').doc(classId).collection('students');
+            const studentsSnapshot = await studentsInClassCollection.get();
             const labeledDescriptors = studentsSnapshot.docs.map(doc => {
                 const data = doc.data();
                 const descriptor = new Float32Array(data.descriptor);
@@ -613,59 +1258,6 @@
                 faceMatcher = null;
                 showStatus('No students enrolled yet. Please enroll a student first.', 'info');
             }
-        }
-
-        // Display the list of enrolled students and their attendance
-        async function displayStudentList() {
-            const studentsSnapshot = await studentsCollection.get();
-            studentListEl.innerHTML = '';
-            if (studentsSnapshot.empty) {
-                noStudentsMessage.classList.remove('hidden');
-            } else {
-                noStudentsMessage.classList.add('hidden');
-                studentsSnapshot.forEach(doc => {
-                    const student = doc.data();
-                    const attendanceCount = student.attendanceHistory ? student.attendanceHistory.length : 0;
-                    const li = document.createElement('li');
-                    li.classList.add('flex', 'flex-col', 'md:flex-row', 'items-center', 'justify-between', 'bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm', 'cursor-pointer', 'transition', 'duration-200', 'hover:bg-gray-100');
-                    li.innerHTML = `
-                        <div class="flex-1 text-center md:text-left mb-2 md:mb-0">
-                            <p class="font-semibold text-gray-800">${student.name}</p>
-                            <p class="text-gray-600 text-sm">Roll: ${student.rollNumber} • Attendance: ${attendanceCount}</p>
-                        </div>
-                        <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition duration-200" onclick="event.stopPropagation(); handleRemoveStudent('${student.rollNumber}')">
-                            Remove
-                        </button>
-                    `;
-                    li.addEventListener('click', () => openEditModal(student));
-                    studentListEl.appendChild(li);
-                });
-            }
-        }
-
-        // Update dashboard stats
-        async function displayDashboardData() {
-            const studentsSnapshot = await studentsCollection.get();
-            const totalStudents = studentsSnapshot.size;
-            dashboardTotalStudents.textContent = totalStudents;
-            
-            const today = new Date().toISOString().slice(0, 10);
-            let presentTodayCount = 0;
-            
-            studentsSnapshot.forEach(doc => {
-                const student = doc.data();
-                if (student.attendanceHistory && student.attendanceHistory.includes(today)) {
-                    presentTodayCount++;
-                }
-            });
-            dashboardPresentToday.textContent = presentTodayCount;
-            
-            const lastCheck = localStorage.getItem('lastAttendanceCheck');
-            if (lastCheck) {
-                dashboardLastCheck.textContent = lastCheck;
-            }
-
-            await displayStudentList();
         }
 
         // Start the webcam stream and live detection
@@ -702,15 +1294,14 @@
             }
         }
 
-        // Handle attendance marking
+        // Handle attendance marking (now class-specific)
         async function handleAttendance(imageSource, canvasSource = attendanceCanvas) {
-            
+
             if (!faceMatcher) {
                 showStatus('No students enrolled. Please enroll a student first.', 'error');
                 return;
             }
 
-            // If webcam stream is active, stop it before processing
             if (webcamStream) {
                 clearInterval(detectionInterval);
                 webcamStream.getTracks().forEach(track => track.stop());
@@ -730,10 +1321,10 @@
                 tempCanvas.height = imageSource.videoHeight;
                 tempCanvas.getContext('2d').drawImage(imageSource, 0, 0, tempCanvas.width, tempCanvas.height);
                 imageToProcess = tempCanvas;
-                canvasToDraw = attendanceCanvas; // use the webcam canvas
+                canvasToDraw = attendanceCanvas;
             } else {
                 imageToProcess = imageSource;
-                canvasToDraw = canvasSource; // use the uploaded photo canvas
+                canvasToDraw = canvasSource;
             }
 
 
@@ -745,11 +1336,11 @@
             }
 
             showStatus(`Detected ${detections.length} faces. Marking attendance...`);
-            
+
             const presentStudents = new Set();
             const displaySize = { width: imageToProcess.naturalWidth || imageToProcess.width, height: imageToProcess.naturalHeight || imageToProcess.height };
             const resizedDetections = faceapi.resizeResults(detections, displaySize);
-            
+
             const context = canvasToDraw.getContext('2d');
             context.clearRect(0, 0, canvasToDraw.width, canvasToDraw.height);
             faceapi.matchDimensions(canvasToDraw, displaySize);
@@ -761,7 +1352,7 @@
                 if (bestMatch.distance < MIN_DISTANCE_THRESHOLD) {
                     const studentName = bestMatch.label;
                     presentStudents.add(studentName);
-                    
+
                     const drawBox = new faceapi.draw.DrawBox(box, { label: `${studentName}` });
                     drawBox.draw(canvasToDraw);
                 } else {
@@ -771,8 +1362,9 @@
             });
 
             const today = new Date().toISOString().slice(0, 10);
+            const studentsInClassCollection = db.collection('classes').doc(currentClassId).collection('students');
             for (const name of presentStudents) {
-                const studentDoc = await studentsCollection.where('name', '==', name).limit(1).get();
+                const studentDoc = await studentsInClassCollection.where('name', '==', name).limit(1).get();
                 if (!studentDoc.empty) {
                     const doc = studentDoc.docs[0];
                     const currentHistory = doc.data().attendanceHistory || [];
@@ -782,7 +1374,7 @@
                     }
                 }
             }
-            
+
             presentStudentsList.innerHTML = '';
             if (presentStudents.size > 0) {
                 showStatus(`Attendance marked! ${presentStudents.size} students identified.`, 'success');
@@ -799,8 +1391,8 @@
             }
             attendanceResultsEl.classList.remove('hidden');
 
-            localStorage.setItem('lastAttendanceCheck', new Date().toLocaleString());
-            await displayDashboardData();
+            localStorage.setItem('lastAttendanceCheck-' + currentClassId, new Date().toLocaleString());
+            await displayClassDashboardData(currentClassId);
         }
 
         // Handle screenshot functionality
@@ -813,9 +1405,6 @@
                 link.click();
             });
         }
-
-        // Start the application
-        initializeApp();
     </script>
 </body>
 </html>
