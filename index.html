@@ -354,8 +354,19 @@
                              </button>
                         </div>
                         
+                        <div class="flex justify-between items-center mb-6 p-4 bg-gray-100 rounded-lg">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Shareable Link</h3>
+                                <div class="flex items-center space-x-2 mt-2">
+                                     <input type="text" id="class-share-link" readonly class="input-field flex-grow bg-white cursor-pointer">
+                                     <button id="copy-link-button" class="btn-secondary px-4 py-2">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+
                         <nav class="flex space-x-4 mb-8 border-b-2 border-gray-200">
                             <button id="nav-class-dashboard" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Dashboard</button>
+                            <button id="nav-class-enroll" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Enroll Student</button>
                             <button id="nav-class-mark" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Mark Attendance</button>
                         </nav>
     
@@ -381,6 +392,50 @@
                                     <ul id="class-student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         </ul>
                                 </div>
+                            </div>
+                        </div>
+    
+                        <div id="class-page-enroll" class="class-page hidden">
+                            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Enroll a Student</h2>
+                            <div class="md:w-2/3 lg:w-1/2 mx-auto">
+                                <form id="enroll-form">
+                                    <div class="mb-4">
+                                        <label for="student-name" class="block text-gray-700 font-medium mb-2">Student Name</label>
+                                        <input type="text" id="student-name" required class="input-field">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
+                                        <input type="text" id="roll-number" required class="input-field">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2">Face Image</label>
+                                        <div class="flex space-x-2 mb-4">
+                                            <button type="button" id="faculty-enroll-webcam-tab-button" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Use Webcam</button>
+                                            <button type="button" id="faculty-enroll-upload-tab-button" class="flex-1 bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Upload Photo</button>
+                                        </div>
+                                        <div id="faculty-enroll-webcam-section">
+                                            <div id="faculty-enroll-webcam-container" class="relative">
+                                                <video id="faculty-enroll-webcam-video" autoplay muted playsinline class="enrollment-webcam-video hidden"></video>
+                                                <canvas id="faculty-enroll-webcam-canvas" class="hidden"></canvas>
+                                            </div>
+                                            <div class="flex space-x-2 mt-4">
+                                                <button type="button" id="faculty-enroll-start-webcam-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Webcam</button>
+                                                <button type="button" id="faculty-enroll-switch-camera-button" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Switch Camera</button>
+                                                <button type="button" id="faculty-enroll-take-photo-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Take Photo</button>
+                                            </div>
+                                        </div>
+                                        <div id="faculty-enroll-upload-section" class="hidden">
+                                            <label for="enroll-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
+                                            <input type="file" id="enroll-image" accept="image/*" class="w-full text-gray-700">
+                                            <div id="enroll-image-preview-container" class="relative mt-4 hidden">
+                                                <img id="enroll-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" id="enroll-button" class="mt-4 w-full btn-primary">
+                                        Enroll Student
+                                    </button>
+                                </form>
                             </div>
                         </div>
     
@@ -567,8 +622,10 @@
         const currentClassTitle = document.getElementById('current-class-title');
         const backToMainDashboardBtn = document.getElementById('back-to-main-dashboard');
         const classDashboardNav = document.getElementById('nav-class-dashboard');
+        const classEnrollNav = document.getElementById('nav-class-enroll');
         const classMarkNav = document.getElementById('nav-class-mark');
         const classPageDashboard = document.getElementById('class-page-dashboard');
+        const classPageEnroll = document.getElementById('class-page-enroll');
         const classPageMark = document.getElementById('class-page-mark');
         const classDashboardTotalStudents = document.getElementById('class-dashboard-total-students');
         const classDashboardPresentToday = document.getElementById('class-dashboard-present-today');
@@ -583,6 +640,23 @@
         let studentsCollection;
         let classesCollection;
         let currentClassId = null;
+
+        // UI elements for Faculty Enroll section
+        const enrollForm = document.getElementById('enroll-form');
+        const facultyEnrollWebcamTabButton = document.getElementById('faculty-enroll-webcam-tab-button');
+        const facultyEnrollUploadTabButton = document.getElementById('faculty-enroll-upload-tab-button');
+        const facultyEnrollWebcamSection = document.getElementById('faculty-enroll-webcam-section');
+        const facultyEnrollUploadSection = document.getElementById('faculty-enroll-upload-section');
+        const facultyEnrollWebcamVideo = document.getElementById('faculty-enroll-webcam-video');
+        const facultyEnrollWebcamCanvas = document.getElementById('faculty-enroll-webcam-canvas');
+        const facultyEnrollStartWebcamButton = document.getElementById('faculty-enroll-start-webcam-button');
+        const facultyEnrollSwitchCameraButton = document.getElementById('faculty-enroll-switch-camera-button');
+        const facultyEnrollTakePhotoButton = document.getElementById('faculty-enroll-take-photo-button');
+        const enrollImageInput = document.getElementById('enroll-image');
+        const enrollImagePreview = document.getElementById('enroll-image-preview');
+        const enrollImagePreviewContainer = document.getElementById('enroll-image-preview-container');
+        const enrollCanvas = document.getElementById('enroll-canvas');
+        let isFrontFacultyEnrollCamera = true;
 
         // Student-specific enrollment elements
         const studentEnrollForm = document.getElementById('student-enroll-form');
@@ -760,9 +834,11 @@
                     showClassPage('class-page-dashboard');
                     displayClassDashboardData(currentClassId);
                 });
+                classEnrollNav.addEventListener('click', () => showClassPage('class-page-enroll'));
                 classMarkNav.addEventListener('click', () => showClassPage('class-page-mark'));
 
                 // Enrollment and Attendance listeners (now inside the class view)
+                enrollForm.addEventListener('submit', handleEnroll);
                 webcamTabButton.addEventListener('click', () => {
                     webcamSection.classList.remove('hidden');
                     uploadSection.classList.add('hidden');
@@ -810,6 +886,62 @@
                     window.location.href = window.location.origin;
                 });
                 
+                copyLinkButton.addEventListener('click', () => {
+                    classShareLinkInput.select();
+                    document.execCommand("copy");
+                    showStatus('Link copied to clipboard!', 'success');
+                });
+                
+                // Faculty enrollment photo options
+                facultyEnrollWebcamTabButton.addEventListener('click', () => {
+                    facultyEnrollWebcamSection.classList.remove('hidden');
+                    facultyEnrollUploadSection.classList.add('hidden');
+                    facultyEnrollWebcamTabButton.classList.add('bg-gray-200');
+                    facultyEnrollWebcamTabButton.classList.remove('bg-gray-50');
+                    facultyEnrollUploadTabButton.classList.remove('bg-gray-200');
+                    facultyEnrollUploadTabButton.classList.add('bg-gray-50');
+                });
+                facultyEnrollUploadTabButton.addEventListener('click', () => {
+                    facultyEnrollUploadSection.classList.remove('hidden');
+                    facultyEnrollWebcamSection.classList.add('hidden');
+                    facultyEnrollUploadTabButton.classList.add('bg-gray-200');
+                    facultyEnrollUploadTabButton.classList.remove('bg-gray-50');
+                    facultyEnrollWebcamTabButton.classList.remove('bg-gray-200');
+                    facultyEnrollWebcamTabButton.classList.add('bg-gray-50');
+                    stopWebcamStream(facultyEnrollWebcamVideo);
+                });
+                facultyEnrollStartWebcamButton.addEventListener('click', () => startEnrollmentWebcam(facultyEnrollWebcamVideo, facultyEnrollStartWebcamButton, facultyEnrollTakePhotoButton, facultyEnrollSwitchCameraButton, isFrontFacultyEnrollCamera));
+                facultyEnrollSwitchCameraButton.addEventListener('click', () => {
+                    isFrontFacultyEnrollCamera = !isFrontFacultyEnrollCamera;
+                    startEnrollmentWebcam(facultyEnrollWebcamVideo, facultyEnrollStartWebcamButton, facultyEnrollTakePhotoButton, facultyEnrollSwitchCameraButton, isFrontFacultyEnrollCamera);
+                });
+                facultyEnrollTakePhotoButton.addEventListener('click', () => takeEnrollmentPhoto(facultyEnrollWebcamVideo, enrollImageInput, facultyEnrollTakePhotoButton, facultyEnrollStartWebcamButton, facultyEnrollSwitchCameraButton));
+
+                // Student enrollment photo options
+                studentEnrollWebcamTabButton.addEventListener('click', () => {
+                    studentEnrollWebcamSection.classList.remove('hidden');
+                    studentEnrollUploadSection.classList.add('hidden');
+                    studentEnrollWebcamTabButton.classList.add('bg-gray-200');
+                    studentEnrollWebcamTabButton.classList.remove('bg-gray-50');
+                    studentEnrollUploadTabButton.classList.remove('bg-gray-200');
+                    studentEnrollUploadTabButton.classList.add('bg-gray-50');
+                });
+                studentEnrollUploadTabButton.addEventListener('click', () => {
+                    studentEnrollUploadSection.classList.remove('hidden');
+                    studentEnrollWebcamSection.classList.add('hidden');
+                    studentEnrollUploadTabButton.classList.add('bg-gray-200');
+                    studentEnrollUploadTabButton.classList.remove('bg-gray-50');
+                    studentEnrollWebcamTabButton.classList.remove('bg-gray-200');
+                    studentEnrollWebcamTabButton.classList.add('bg-gray-50');
+                    stopWebcamStream(studentEnrollWebcamVideo);
+                });
+                studentEnrollStartWebcamButton.addEventListener('click', () => startEnrollmentWebcam(studentEnrollWebcamVideo, studentEnrollStartWebcamButton, studentEnrollTakePhotoButton, studentEnrollSwitchCameraButton, isFrontStudentEnrollCamera));
+                studentEnrollSwitchCameraButton.addEventListener('click', () => {
+                    isFrontStudentEnrollCamera = !isFrontStudentEnrollCamera;
+                    startEnrollmentWebcam(studentEnrollWebcamVideo, studentEnrollStartWebcamButton, studentEnrollTakePhotoButton, studentEnrollSwitchCameraButton, isFrontStudentEnrollCamera);
+                });
+                studentEnrollTakePhotoButton.addEventListener('click', () => takeEnrollmentPhoto(studentEnrollWebcamVideo, studentEnrollImageInput, studentEnrollTakePhotoButton, studentEnrollStartWebcamButton, studentEnrollSwitchCameraButton));
+
                 // Student enrollment via link photo options
                 enrollLinkWebcamTabButton.addEventListener('click', () => {
                     enrollLinkWebcamSection.classList.remove('hidden');
@@ -1042,6 +1174,7 @@
         async function openClassView(classId, className) {
              currentClassId = classId;
              currentClassTitle.textContent = className;
+             classShareLinkInput.value = `${window.location.origin}?classCode=${classId}`;
              showPage('class-management-view');
              showClassPage('class-page-dashboard');
              await updateFaceMatcher(classId);
@@ -1226,6 +1359,56 @@
         async function getFaceDescriptor(image) {
             const detections = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor();
             return detections ? detections.descriptor : null;
+        }
+
+        // Handle student enrollment (now class-specific)
+        async function handleEnroll(event) {
+            event.preventDefault();
+            const name = document.getElementById('student-name').value;
+            const rollNumber = document.getElementById('roll-number').value;
+            const imageInput = document.getElementById('enroll-image');
+
+            const file = imageInput.files[0];
+            if (!file) {
+                showStatus('Please upload or take a photo.', 'error');
+                return;
+            }
+
+            const image = new Image();
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            await new Promise(resolve => reader.onload = () => {
+                image.src = reader.result;
+                resolve();
+            });
+
+            showStatus('Processing image and extracting face descriptor...');
+            const descriptor = await getFaceDescriptor(image);
+
+            if (!descriptor) {
+                showStatus('No face detected. Please upload a clearer photo.', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Saving student data to Firestore...');
+                const studentsInClassCollection = db.collection('classes').doc(currentClassId).collection('students');
+                await studentsInClassCollection.doc(rollNumber).set({
+                    name: name,
+                    rollNumber: rollNumber,
+                    descriptor: Array.from(descriptor),
+                    attendanceHistory: []
+                });
+                showStatus(`Student ${name} (Roll: ${rollNumber}) enrolled successfully!`, 'success');
+                await updateFaceMatcher(currentClassId);
+                await displayClassDashboardData(currentClassId);
+                enrollForm.reset();
+                enrollImagePreviewContainer.classList.add('hidden');
+                showClassPage('class-page-dashboard');
+            } catch (error) {
+                showStatus(`Failed to enroll student: ${error.message}`, 'error');
+                console.error('Enrollment error:', error);
+            }
         }
 
         // Open the edit modal with student info
