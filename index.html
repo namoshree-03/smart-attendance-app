@@ -87,7 +87,7 @@
             max-width: 100%;
             height: auto;
         }
-        #webcam-video, #attendance-image-preview, #uploaded-image-preview {
+        #webcam-video, #attendance-image-preview, #uploaded-image-preview, .enrollment-webcam-video {
             width: 100%;
             height: auto;
             border-radius: 0.5rem;
@@ -132,12 +132,29 @@
                      <input type="text" id="enroll-link-roll-number" required class="input-field">
                  </div>
                  <div class="mb-4">
-                     <label for="enroll-link-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
-                     <input type="file" id="enroll-link-image" accept="image/*" required class="w-full text-gray-700">
-                 </div>
-                 <div id="enroll-link-image-preview-container" class="relative mt-4 hidden">
-                     <img id="enroll-link-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
-                     <canvas id="enroll-link-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                    <label class="block text-gray-700 font-medium mb-2">Face Image</label>
+                    <div class="flex space-x-2 mb-4">
+                        <button type="button" id="enroll-link-webcam-tab-button" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Use Webcam</button>
+                        <button type="button" id="enroll-link-upload-tab-button" class="flex-1 bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Upload Photo</button>
+                    </div>
+                    <div id="enroll-link-webcam-section">
+                        <div id="enroll-link-webcam-container" class="relative">
+                            <video id="enroll-link-webcam-video" autoplay muted playsinline class="enrollment-webcam-video hidden"></video>
+                            <canvas id="enroll-link-webcam-canvas" class="hidden"></canvas>
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <button type="button" id="enroll-link-start-webcam-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Webcam</button>
+                            <button type="button" id="enroll-link-switch-camera-button" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Switch Camera</button>
+                            <button type="button" id="enroll-link-take-photo-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Take Photo</button>
+                        </div>
+                    </div>
+                    <div id="enroll-link-upload-section" class="hidden">
+                        <label for="enroll-link-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
+                        <input type="file" id="enroll-link-image" accept="image/*" class="w-full text-gray-700">
+                        <div id="enroll-link-image-preview-container" class="relative mt-4 hidden">
+                            <img id="enroll-link-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                        </div>
+                    </div>
                  </div>
                  <button type="submit" class="mt-4 w-full btn-primary">
                      Enroll
@@ -253,12 +270,29 @@
                             <input type="text" id="student-enroll-class-code" required class="input-field">
                         </div>
                         <div class="mb-4">
-                            <label for="student-enroll-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
-                            <input type="file" id="student-enroll-image" accept="image/*" required class="w-full text-gray-700">
-                        </div>
-                        <div id="student-enroll-image-preview-container" class="relative mt-4 hidden">
-                            <img id="student-enroll-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
-                            <canvas id="student-enroll-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                            <label class="block text-gray-700 font-medium mb-2">Face Image</label>
+                            <div class="flex space-x-2 mb-4">
+                                <button type="button" id="student-enroll-webcam-tab-button" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Use Webcam</button>
+                                <button type="button" id="student-enroll-upload-tab-button" class="flex-1 bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Upload Photo</button>
+                            </div>
+                            <div id="student-enroll-webcam-section">
+                                <div id="student-enroll-webcam-container" class="relative">
+                                    <video id="student-enroll-webcam-video" autoplay muted playsinline class="enrollment-webcam-video hidden"></video>
+                                    <canvas id="student-enroll-webcam-canvas" class="hidden"></canvas>
+                                </div>
+                                <div class="flex space-x-2 mt-4">
+                                    <button type="button" id="student-enroll-start-webcam-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Webcam</button>
+                                    <button type="button" id="student-enroll-switch-camera-button" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Switch Camera</button>
+                                    <button type="button" id="student-enroll-take-photo-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Take Photo</button>
+                                </div>
+                            </div>
+                            <div id="student-enroll-upload-section" class="hidden">
+                                <label for="student-enroll-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
+                                <input type="file" id="student-enroll-image" accept="image/*" class="w-full text-gray-700">
+                                <div id="student-enroll-image-preview-container" class="relative mt-4 hidden">
+                                    <img id="student-enroll-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                                </div>
+                            </div>
                         </div>
                         <button type="submit" id="student-enroll-button" class="mt-4 w-full btn-primary">
                             Enroll
@@ -372,12 +406,29 @@
                                         <input type="text" id="roll-number" required class="input-field">
                                     </div>
                                     <div class="mb-4">
-                                        <label for="enroll-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
-                                        <input type="file" id="enroll-image" accept="image/*" required class="w-full text-gray-700">
-                                    </div>
-                                    <div id="enroll-image-preview-container" class="relative mt-4 hidden">
-                                        <img id="enroll-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
-                                        <canvas id="enroll-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                                        <label class="block text-gray-700 font-medium mb-2">Face Image</label>
+                                        <div class="flex space-x-2 mb-4">
+                                            <button type="button" id="faculty-enroll-webcam-tab-button" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Use Webcam</button>
+                                            <button type="button" id="faculty-enroll-upload-tab-button" class="flex-1 bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-200">Upload Photo</button>
+                                        </div>
+                                        <div id="faculty-enroll-webcam-section">
+                                            <div id="faculty-enroll-webcam-container" class="relative">
+                                                <video id="faculty-enroll-webcam-video" autoplay muted playsinline class="enrollment-webcam-video hidden"></video>
+                                                <canvas id="faculty-enroll-webcam-canvas" class="hidden"></canvas>
+                                            </div>
+                                            <div class="flex space-x-2 mt-4">
+                                                <button type="button" id="faculty-enroll-start-webcam-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Webcam</button>
+                                                <button type="button" id="faculty-enroll-switch-camera-button" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Switch Camera</button>
+                                                <button type="button" id="faculty-enroll-take-photo-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Take Photo</button>
+                                            </div>
+                                        </div>
+                                        <div id="faculty-enroll-upload-section" class="hidden">
+                                            <label for="enroll-image" class="block text-gray-700 font-medium mb-2">Upload Face Image</label>
+                                            <input type="file" id="enroll-image" accept="image/*" class="w-full text-gray-700">
+                                            <div id="enroll-image-preview-container" class="relative mt-4 hidden">
+                                                <img id="enroll-image-preview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md">
+                                            </div>
+                                        </div>
                                     </div>
                                     <button type="submit" id="enroll-button" class="mt-4 w-full btn-primary">
                                         Enroll Student
@@ -530,11 +581,24 @@
         const showStudentCreateBtn = document.getElementById('show-student-create');
         const backToStudentLoginBtn = document.getElementById('back-to-student-login');
         
-        // Student class join elements
+        // Student enrollment via link elements
         const enrollmentClassNameEl = document.getElementById('enrollment-class-name');
         const enrollLinkForm = document.getElementById('enroll-link-form');
         const enrollLinkClassCodeInput = document.getElementById('enroll-link-class-code');
         const backToMainFromEnrollLinkBtn = document.getElementById('back-to-main-from-enroll-link');
+        const enrollLinkWebcamTabButton = document.getElementById('enroll-link-webcam-tab-button');
+        const enrollLinkUploadTabButton = document.getElementById('enroll-link-upload-tab-button');
+        const enrollLinkWebcamSection = document.getElementById('enroll-link-webcam-section');
+        const enrollLinkUploadSection = document.getElementById('enroll-link-upload-section');
+        const enrollLinkWebcamVideo = document.getElementById('enroll-link-webcam-video');
+        const enrollLinkWebcamCanvas = document.getElementById('enroll-link-webcam-canvas');
+        const enrollLinkStartWebcamButton = document.getElementById('enroll-link-start-webcam-button');
+        const enrollLinkSwitchCameraButton = document.getElementById('enroll-link-switch-camera-button');
+        const enrollLinkTakePhotoButton = document.getElementById('enroll-link-take-photo-button');
+        const enrollLinkImageInput = document.getElementById('enroll-link-image');
+        const enrollLinkImagePreviewContainer = document.getElementById('enroll-link-image-preview-container');
+        let isFrontEnrollmentLinkCamera = true;
+
 
         // Faculty Class Management Elements
         const facultyMainDashboard = document.getElementById('faculty-main-dashboard');
@@ -569,19 +633,40 @@
         let classesCollection;
         let currentClassId = null;
 
-        // UI elements for Enroll section
+        // UI elements for Faculty Enroll section
         const enrollForm = document.getElementById('enroll-form');
+        const facultyEnrollWebcamTabButton = document.getElementById('faculty-enroll-webcam-tab-button');
+        const facultyEnrollUploadTabButton = document.getElementById('faculty-enroll-upload-tab-button');
+        const facultyEnrollWebcamSection = document.getElementById('faculty-enroll-webcam-section');
+        const facultyEnrollUploadSection = document.getElementById('faculty-enroll-upload-section');
+        const facultyEnrollWebcamVideo = document.getElementById('faculty-enroll-webcam-video');
+        const facultyEnrollWebcamCanvas = document.getElementById('faculty-enroll-webcam-canvas');
+        const facultyEnrollStartWebcamButton = document.getElementById('faculty-enroll-start-webcam-button');
+        const facultyEnrollSwitchCameraButton = document.getElementById('faculty-enroll-switch-camera-button');
+        const facultyEnrollTakePhotoButton = document.getElementById('faculty-enroll-take-photo-button');
         const enrollImageInput = document.getElementById('enroll-image');
         const enrollImagePreview = document.getElementById('enroll-image-preview');
         const enrollImagePreviewContainer = document.getElementById('enroll-image-preview-container');
         const enrollCanvas = document.getElementById('enroll-canvas');
-        
-        // New student enrollment elements
+        let isFrontFacultyEnrollCamera = true;
+
+        // Student-specific enrollment elements
         const studentEnrollForm = document.getElementById('student-enroll-form');
+        const studentEnrollWebcamTabButton = document.getElementById('student-enroll-webcam-tab-button');
+        const studentEnrollUploadTabButton = document.getElementById('student-enroll-upload-tab-button');
+        const studentEnrollWebcamSection = document.getElementById('student-enroll-webcam-section');
+        const studentEnrollUploadSection = document.getElementById('student-enroll-upload-section');
+        const studentEnrollWebcamVideo = document.getElementById('student-enroll-webcam-video');
+        const studentEnrollWebcamCanvas = document.getElementById('student-enroll-webcam-canvas');
+        const studentEnrollStartWebcamButton = document.getElementById('student-enroll-start-webcam-button');
+        const studentEnrollSwitchCameraButton = document.getElementById('student-enroll-switch-camera-button');
+        const studentEnrollTakePhotoButton = document.getElementById('student-enroll-take-photo-button');
         const studentEnrollImageInput = document.getElementById('student-enroll-image');
         const studentEnrollImagePreview = document.getElementById('student-enroll-image-preview');
         const studentEnrollImagePreviewContainer = document.getElementById('student-enroll-image-preview-container');
         const studentEnrollCanvas = document.getElementById('student-enroll-canvas');
+        let isFrontStudentEnrollCamera = true;
+
 
         // UI elements for Mark Attendance section
         const webcamTabButton = document.getElementById('webcam-tab-button');
@@ -783,6 +868,82 @@
                     showStatus('Link copied to clipboard!', 'success');
                 });
                 
+                // Faculty enrollment photo options
+                facultyEnrollWebcamTabButton.addEventListener('click', () => {
+                    facultyEnrollWebcamSection.classList.remove('hidden');
+                    facultyEnrollUploadSection.classList.add('hidden');
+                    facultyEnrollWebcamTabButton.classList.add('bg-gray-200');
+                    facultyEnrollWebcamTabButton.classList.remove('bg-gray-50');
+                    facultyEnrollUploadTabButton.classList.remove('bg-gray-200');
+                    facultyEnrollUploadTabButton.classList.add('bg-gray-50');
+                });
+                facultyEnrollUploadTabButton.addEventListener('click', () => {
+                    facultyEnrollUploadSection.classList.remove('hidden');
+                    facultyEnrollWebcamSection.classList.add('hidden');
+                    facultyEnrollUploadTabButton.classList.add('bg-gray-200');
+                    facultyEnrollUploadTabButton.classList.remove('bg-gray-50');
+                    facultyEnrollWebcamTabButton.classList.remove('bg-gray-200');
+                    facultyEnrollWebcamTabButton.classList.add('bg-gray-50');
+                    stopWebcamStream(facultyEnrollWebcamVideo);
+                });
+                facultyEnrollStartWebcamButton.addEventListener('click', () => startEnrollmentWebcam(facultyEnrollWebcamVideo, facultyEnrollStartWebcamButton, facultyEnrollTakePhotoButton, facultyEnrollSwitchCameraButton, isFrontFacultyEnrollCamera));
+                facultyEnrollSwitchCameraButton.addEventListener('click', () => {
+                    isFrontFacultyEnrollCamera = !isFrontFacultyEnrollCamera;
+                    startEnrollmentWebcam(facultyEnrollWebcamVideo, facultyEnrollStartWebcamButton, facultyEnrollTakePhotoButton, facultyEnrollSwitchCameraButton, isFrontFacultyEnrollCamera);
+                });
+                facultyEnrollTakePhotoButton.addEventListener('click', () => takeEnrollmentPhoto(facultyEnrollWebcamVideo, enrollImageInput, facultyEnrollTakePhotoButton, facultyEnrollStartWebcamButton, facultyEnrollSwitchCameraButton));
+
+                // Student enrollment photo options
+                studentEnrollWebcamTabButton.addEventListener('click', () => {
+                    studentEnrollWebcamSection.classList.remove('hidden');
+                    studentEnrollUploadSection.classList.add('hidden');
+                    studentEnrollWebcamTabButton.classList.add('bg-gray-200');
+                    studentEnrollWebcamTabButton.classList.remove('bg-gray-50');
+                    studentEnrollUploadTabButton.classList.remove('bg-gray-200');
+                    studentEnrollUploadTabButton.classList.add('bg-gray-50');
+                });
+                studentEnrollUploadTabButton.addEventListener('click', () => {
+                    studentEnrollUploadSection.classList.remove('hidden');
+                    studentEnrollWebcamSection.classList.add('hidden');
+                    studentEnrollUploadTabButton.classList.add('bg-gray-200');
+                    studentEnrollUploadTabButton.classList.remove('bg-gray-50');
+                    studentEnrollWebcamTabButton.classList.remove('bg-gray-200');
+                    studentEnrollWebcamTabButton.classList.add('bg-gray-50');
+                    stopWebcamStream(studentEnrollWebcamVideo);
+                });
+                studentEnrollStartWebcamButton.addEventListener('click', () => startEnrollmentWebcam(studentEnrollWebcamVideo, studentEnrollStartWebcamButton, studentEnrollTakePhotoButton, studentEnrollSwitchCameraButton, isFrontStudentEnrollCamera));
+                studentEnrollSwitchCameraButton.addEventListener('click', () => {
+                    isFrontStudentEnrollCamera = !isFrontStudentEnrollCamera;
+                    startEnrollmentWebcam(studentEnrollWebcamVideo, studentEnrollStartWebcamButton, studentEnrollTakePhotoButton, studentEnrollSwitchCameraButton, isFrontStudentEnrollCamera);
+                });
+                studentEnrollTakePhotoButton.addEventListener('click', () => takeEnrollmentPhoto(studentEnrollWebcamVideo, studentEnrollImageInput, studentEnrollTakePhotoButton, studentEnrollStartWebcamButton, studentEnrollSwitchCameraButton));
+
+                // Student enrollment via link photo options
+                enrollLinkWebcamTabButton.addEventListener('click', () => {
+                    enrollLinkWebcamSection.classList.remove('hidden');
+                    enrollLinkUploadSection.classList.add('hidden');
+                    enrollLinkWebcamTabButton.classList.add('bg-gray-200');
+                    enrollLinkWebcamTabButton.classList.remove('bg-gray-50');
+                    enrollLinkUploadTabButton.classList.remove('bg-gray-200');
+                    enrollLinkUploadTabButton.classList.add('bg-gray-50');
+                });
+                enrollLinkUploadTabButton.addEventListener('click', () => {
+                    enrollLinkUploadSection.classList.remove('hidden');
+                    enrollLinkWebcamSection.classList.add('hidden');
+                    enrollLinkUploadTabButton.classList.add('bg-gray-200');
+                    enrollLinkUploadTabButton.classList.remove('bg-gray-50');
+                    enrollLinkWebcamTabButton.classList.remove('bg-gray-200');
+                    enrollLinkWebcamTabButton.classList.add('bg-gray-50');
+                    stopWebcamStream(enrollLinkWebcamVideo);
+                });
+                enrollLinkStartWebcamButton.addEventListener('click', () => startEnrollmentWebcam(enrollLinkWebcamVideo, enrollLinkStartWebcamButton, enrollLinkTakePhotoButton, enrollLinkSwitchCameraButton, isFrontEnrollmentLinkCamera));
+                enrollLinkSwitchCameraButton.addEventListener('click', () => {
+                    isFrontEnrollmentLinkCamera = !isFrontEnrollmentLinkCamera;
+                    startEnrollmentWebcam(enrollLinkWebcamVideo, enrollLinkStartWebcamButton, enrollLinkTakePhotoButton, enrollLinkSwitchCameraButton, isFrontEnrollmentLinkCamera);
+                });
+                enrollLinkTakePhotoButton.addEventListener('click', () => takeEnrollmentPhoto(enrollLinkWebcamVideo, enrollLinkImageInput, enrollLinkTakePhotoButton, enrollLinkStartWebcamButton, enrollLinkSwitchCameraButton));
+
+
                 // New student-specific enrollment listener
                 studentEnrollForm.addEventListener('submit', handleStudentEnroll);
                 studentEnrollImageInput.addEventListener('change', (e) => handleImagePreview(e, studentEnrollImagePreview, studentEnrollImagePreviewContainer));
@@ -792,33 +953,6 @@
                 console.error('Firebase initialization error:', error);
             }
         }
-        
-        // Initial app load logic
-        document.addEventListener('DOMContentLoaded', async () => {
-            const classCode = getParameterByName('classCode');
-            if (classCode) {
-                try {
-                    firebase.initializeApp(firebaseConfig);
-                    db = firebase.firestore();
-                    const classDoc = await db.collection('classes').doc(classCode).get();
-                    if (classDoc.exists) {
-                        enrollmentClassNameEl.textContent = classDoc.data().className;
-                        enrollLinkClassCodeInput.value = classCode;
-                        studentEnrollmentLinkPage.classList.remove('hidden');
-                        loginContainer.classList.add('hidden');
-                    } else {
-                        showStatus('Invalid class code. Please check the link and try again.', 'error');
-                        loginContainer.classList.remove('hidden');
-                    }
-                } catch (error) {
-                     showStatus('An error occurred. Please try again.', 'error');
-                     console.error('Error fetching class data:', error);
-                     loginContainer.classList.remove('hidden');
-                }
-            } else {
-                loginContainer.classList.remove('hidden');
-            }
-        });
 
         // Handle login form submission
         facultyLoginForm.addEventListener('submit', async (event) => {
@@ -1053,14 +1187,14 @@
             const name = document.getElementById('enroll-link-student-name').value;
             const rollNumber = document.getElementById('enroll-link-roll-number').value;
             const imageInput = document.getElementById('enroll-link-image');
-            const image = new Image();
             
             const file = imageInput.files[0];
             if (!file) {
-                showStatus('Please upload an image.', 'error');
+                showStatus('Please upload or take a photo.', 'error');
                 return;
             }
             
+            const image = new Image();
             const reader = new FileReader();
             reader.readAsDataURL(file);
             await new Promise(resolve => reader.onload = () => {
@@ -1100,14 +1234,14 @@
             const rollNumber = document.getElementById('student-enroll-roll-number').value;
             const classCode = document.getElementById('student-enroll-class-code').value;
             const imageInput = document.getElementById('student-enroll-image');
-            const image = new Image();
 
             const file = imageInput.files[0];
             if (!file) {
-                showStatus('Please upload an image.', 'error');
+                showStatus('Please upload or take a photo.', 'error');
                 return;
             }
 
+            const image = new Image();
             const reader = new FileReader();
             reader.readAsDataURL(file);
             await new Promise(resolve => reader.onload = () => {
@@ -1177,14 +1311,14 @@
             const name = document.getElementById('student-name').value;
             const rollNumber = document.getElementById('roll-number').value;
             const imageInput = document.getElementById('enroll-image');
-            const image = new Image();
 
             const file = imageInput.files[0];
             if (!file) {
-                showStatus('Please upload an image.', 'error');
+                showStatus('Please upload or take a photo.', 'error');
                 return;
             }
 
+            const image = new Image();
             const reader = new FileReader();
             reader.readAsDataURL(file);
             await new Promise(resolve => reader.onload = () => {
@@ -1303,16 +1437,18 @@
 
         // Function to delete a student from the database (now class-specific)
         async function handleRemoveStudent(rollNumber, classId) {
-            showStatus(`Removing student with roll number ${rollNumber}...`, 'info');
-            try {
-                const studentsInClassCollection = db.collection('classes').doc(classId).collection('students');
-                await studentsInClassCollection.doc(rollNumber).delete();
-                showStatus(`Student with roll number ${rollNumber} removed successfully.`, 'success');
-                await updateFaceMatcher(classId);
-                await displayClassDashboardData(classId);
-            } catch (error) {
-                showStatus(`Failed to remove student: ${error.message}`, 'error');
-                console.error('Removal error:', error);
+            if (confirm(`Are you sure you want to remove student with roll number ${rollNumber}?`)) {
+                showStatus(`Removing student with roll number ${rollNumber}...`, 'info');
+                try {
+                    const studentsInClassCollection = db.collection('classes').doc(classId).collection('students');
+                    await studentsInClassCollection.doc(rollNumber).delete();
+                    showStatus(`Student with roll number ${rollNumber} removed successfully.`, 'success');
+                    await updateFaceMatcher(classId);
+                    await displayClassDashboardData(classId);
+                } catch (error) {
+                    showStatus(`Failed to remove student: ${error.message}`, 'error');
+                    console.error('Removal error:', error);
+                }
             }
         }
 
@@ -1335,6 +1471,53 @@
                 showStatus('No students enrolled yet. Please enroll a student first.', 'info');
             }
         }
+
+        // General webcam start function for enrollment and attendance
+        let activeWebcamStream = null;
+        async function startEnrollmentWebcam(videoElement, startButton, takePhotoButton, switchButton, isFront) {
+            try {
+                stopWebcamStream(videoElement);
+                const constraints = { video: { facingMode: isFront ? 'user' : 'environment' } };
+                activeWebcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = activeWebcamStream;
+                videoElement.classList.remove('hidden');
+                startButton.classList.add('hidden');
+                takePhotoButton.classList.remove('hidden');
+                switchButton.classList.remove('hidden');
+            } catch (err) {
+                console.error("Error accessing webcam: ", err);
+                showStatus('Could not access the webcam. Please ensure permissions are granted or a camera is available.', 'error');
+                switchButton.classList.add('hidden');
+            }
+        }
+
+        function stopWebcamStream(videoElement) {
+            if (activeWebcamStream) {
+                activeWebcamStream.getTracks().forEach(track => track.stop());
+                videoElement.srcObject = null;
+                activeWebcamStream = null;
+            }
+        }
+
+        function takeEnrollmentPhoto(videoElement, fileInput, takePhotoButton, startButton, switchButton) {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                const file = new File([blob], 'enrollment_photo.png', { type: 'image/png' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+                stopWebcamStream(videoElement);
+                takePhotoButton.classList.add('hidden');
+                startButton.classList.remove('hidden');
+                switchButton.classList.add('hidden');
+            }, 'image/png');
+        }
+
 
         // Start the webcam stream and live detection
         async function startWebcam() {
