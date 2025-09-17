@@ -484,6 +484,7 @@
                                             Take Screenshot
                                         </button>
                                     </div>
+                                    <h4 id="detected-count" class="text-lg font-bold text-gray-800 mb-2">Faces Detected: 0</h4>
                                     <ul id="present-students-list" class="list-disc list-inside text-gray-600">
                                     </ul>
                                 </div>
@@ -693,6 +694,7 @@
         const uploadedCanvas = document.getElementById('uploaded-canvas');
 
         const attendanceResultsEl = document.getElementById('attendance-results');
+        const detectedCountEl = document.getElementById('detected-count');
         const presentStudentsList = document.getElementById('present-students-list');
         const screenshotButton = document.getElementById('screenshot-button');
 
@@ -1593,7 +1595,7 @@
                 webcamVideo.classList.remove('hidden');
                 uploadedImagePreviewContainer.classList.add('hidden');
                 attendanceCanvas.classList.remove('hidden');
-                startWebcamButton.classList.add('hidden');
+                startWebcamButton.classList.remove('hidden');
                 takePhotoButton.classList.remove('hidden');
                 switchCameraButton.classList.remove('hidden');
         
@@ -1641,6 +1643,8 @@
                 switchCameraButton.classList.add('hidden');
             }
 
+            // Resetting the count
+            detectedCountEl.textContent = 'Faces Detected: 0';
             showStatus('Processing photo and matching faces...', 'info');
 
             let imageToProcess;
@@ -1660,6 +1664,9 @@
 
 
             const detections = await faceapi.detectAllFaces(imageToProcess).withFaceLandmarks().withFaceDescriptors();
+
+            // Updating the count
+            detectedCountEl.textContent = `Faces Detected: ${detections.length}`;
 
             if (detections.length === 0) {
                 showStatus('No faces detected in the photo. Please take a different photo.', 'error');
