@@ -387,6 +387,7 @@
                                     </div>
                                     <div class="flex space-x-2 mt-4">
                                         <button id="start-webcam-button" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Start Webcam</button>
+                                        <button id="switch-camera-button" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Switch Camera</button>
                                         <button id="take-photo-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">Mark Attendance</button>
                                     </div>
                                 </div>
@@ -568,6 +569,7 @@
         const uploadSection = document.getElementById('upload-section');
         const webcamVideo = document.getElementById('webcam-video');
         const startWebcamButton = document.getElementById('start-webcam-button');
+        const switchCameraButton = document.getElementById('switch-camera-button');
         const takePhotoButton = document.getElementById('take-photo-button');
         const attendanceCanvas = document.getElementById('attendance-canvas');
         const attendanceUploadForm = document.getElementById('attendance-upload-form');
@@ -582,6 +584,7 @@
 
         let webcamStream = null;
         let detectionInterval = null;
+        let isFrontCamera = true;
 
         // UI elements for the Edit Modal
         const editModal = document.getElementById('edit-modal');
@@ -726,10 +729,15 @@
                         webcamVideo.classList.add('hidden');
                         startWebcamButton.classList.remove('hidden');
                         takePhotoButton.classList.add('hidden');
+                        switchCameraButton.classList.add('hidden');
                         clearInterval(detectionInterval);
                     }
                 });
                 startWebcamButton.addEventListener('click', startWebcam);
+                switchCameraButton.addEventListener('click', () => {
+                    isFrontCamera = !isFrontCamera;
+                    startWebcam();
+                });
                 takePhotoButton.addEventListener('click', () => handleAttendance(webcamVideo));
                 attendanceUploadForm.addEventListener('submit', (event) => {
                     event.preventDefault();
@@ -1263,34 +1271,49 @@
         // Start the webcam stream and live detection
         async function startWebcam() {
             try {
-                webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                if (webcamStream) {
+                    webcamStream.getTracks().forEach(track => track.stop());
+                }
+        
+                const constraints = {
+                    video: {
+                        facingMode: isFrontCamera ? 'user' : 'environment'
+                    }
+                };
+        
+                webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
                 webcamVideo.srcObject = webcamStream;
                 webcamVideo.classList.remove('hidden');
                 uploadedImagePreviewContainer.classList.add('hidden');
                 attendanceCanvas.classList.remove('hidden');
                 startWebcamButton.classList.add('hidden');
                 takePhotoButton.classList.remove('hidden');
-
+                switchCameraButton.classList.remove('hidden');
+        
                 webcamVideo.onloadeddata = () => {
                     attendanceCanvas.width = webcamVideo.videoWidth;
                     attendanceCanvas.height = webcamVideo.videoHeight;
                     const displaySize = { width: webcamVideo.videoWidth, height: webcamVideo.videoHeight };
                     faceapi.matchDimensions(attendanceCanvas, displaySize);
-
+        
+                    if (detectionInterval) {
+                        clearInterval(detectionInterval);
+                    }
                     detectionInterval = setInterval(async () => {
                         const detections = await faceapi.detectAllFaces(webcamVideo).withFaceLandmarks();
                         const resizedDetections = faceapi.resizeResults(detections, displaySize);
                         attendanceCanvas.getContext('2d').clearRect(0, 0, attendanceCanvas.width, attendanceCanvas.height);
                         resizedDetections.forEach(detection => {
-                             const drawBox = new faceapi.draw.DrawBox(detection.detection.box, { label: 'Face' });
-                             drawBox.draw(attendanceCanvas);
+                            const drawBox = new faceapi.draw.DrawBox(detection.detection.box, { label: 'Face' });
+                            drawBox.draw(attendanceCanvas);
                         });
                     }, 100);
                 };
-
+        
             } catch (err) {
                 console.error("Error accessing webcam: ", err);
-                showStatus('Could not access the webcam. Please ensure permissions are granted.', 'error');
+                showStatus('Could not access the webcam. Please ensure permissions are granted or a camera is available.', 'error');
+                switchCameraButton.classList.add('hidden');
             }
         }
 
@@ -1308,6 +1331,7 @@
                 webcamVideo.classList.add('hidden');
                 startWebcamButton.classList.remove('hidden');
                 takePhotoButton.classList.add('hidden');
+                switchCameraButton.classList.add('hidden');
             }
 
             showStatus('Processing photo and matching faces...', 'info');
