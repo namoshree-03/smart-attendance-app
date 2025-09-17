@@ -175,12 +175,12 @@
 
             <form id="faculty-login-form">
                 <div class="mb-4">
-                    <label for="faculty-username" class="block text-gray-700 font-medium mb-2">Faculty Username</label>
-                    <input type="text" id="faculty-username" required class="input-field" placeholder="admin">
+                    <label for="faculty-username" class="block text-gray-700 font-medium mb-2">Email</label>
+                    <input type="email" id="faculty-email" required class="input-field" placeholder="faculty@example.com">
                 </div>
                 <div class="mb-6">
-                    <label for="faculty-college-id" class="block text-gray-700 font-medium mb-2">College ID</label>
-                    <input type="text" id="faculty-college-id" required class="input-field" placeholder="CID123">
+                    <label for="faculty-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="faculty-password" required class="input-field" placeholder="your_password">
                 </div>
                 <button type="submit" class="w-full btn-primary">
                     Login as Faculty
@@ -188,7 +188,6 @@
                 <button type="button" id="show-faculty-create" class="w-full mt-4 btn-secondary">
                     Create Account
                 </button>
-                <p class="text-center text-gray-500 text-sm mt-4">Use 'admin' for username and 'CID123' for College ID.</p>
             </form>
 
             <form id="faculty-create-form" class="hidden">
@@ -197,8 +196,8 @@
                     <input type="text" id="new-faculty-name" required class="input-field">
                 </div>
                 <div class="mb-4">
-                    <label for="new-faculty-id" class="block text-gray-700 font-medium mb-2">College ID</label>
-                    <input type="text" id="new-faculty-id" required class="input-field">
+                    <label for="new-faculty-email" class="block text-gray-700 font-medium mb-2">Email</label>
+                    <input type="email" id="new-faculty-email" required class="input-field">
                 </div>
                 <div class="mb-6">
                     <label for="new-faculty-password" class="block text-gray-700 font-medium mb-2">Password</label>
@@ -214,8 +213,8 @@
 
             <form id="student-login-form" class="hidden">
                 <div class="mb-4">
-                    <label for="student-roll-number" class="block text-gray-700 font-medium mb-2">Roll Number</label>
-                    <input type="text" id="student-roll-number" required class="input-field" placeholder="12345">
+                    <label for="student-email" class="block text-gray-700 font-medium mb-2">Email</label>
+                    <input type="email" id="student-email" required class="input-field" placeholder="student@example.com">
                 </div>
                 <div class="mb-6">
                     <label for="student-password" class="block text-gray-700 font-medium mb-2">Password</label>
@@ -227,13 +226,16 @@
                 <button type="button" id="show-student-create" class="w-full mt-4 btn-secondary">
                     Create Account
                 </button>
-                <p class="text-center text-gray-500 text-sm mt-4">Use '12345' for roll number and 'studentpass' for password.</p>
             </form>
 
             <form id="student-create-form" class="hidden">
                 <div class="mb-4">
                     <label for="new-student-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
                     <input type="text" id="new-student-name" required class="input-field">
+                </div>
+                <div class="mb-4">
+                    <label for="new-student-email" class="block text-gray-700 font-medium mb-2">Email</label>
+                    <input type="email" id="new-student-email" required class="input-field">
                 </div>
                 <div class="mb-4">
                     <label for="new-student-roll" class="block text-gray-700 font-medium mb-2">Roll Number</label>
@@ -557,6 +559,8 @@
 
         // Initialize Firebase
         let db, auth;
+        let currentUser = null;
+        let userRole = null;
         const appContainer = document.getElementById('app-container');
         const loginContainer = document.getElementById('login-container');
         const statusEl = document.getElementById('status');
@@ -574,6 +578,10 @@
         const studentLoginForm = document.getElementById('student-login-form');
         const facultyCreateForm = document.getElementById('faculty-create-form');
         const studentCreateForm = document.getElementById('student-create-form');
+        const facultyEmailLogin = document.getElementById('faculty-email');
+        const facultyPasswordLogin = document.getElementById('faculty-password');
+        const studentEmailLogin = document.getElementById('student-email');
+        const studentPasswordLogin = document.getElementById('student-password');
 
         // Login/Create Account buttons
         const showFacultyCreateBtn = document.getElementById('show-faculty-create');
@@ -759,37 +767,53 @@
         }
 
         // Initialize the app after successful login
-        async function initializeApp(userRole) {
+        async function initializeApp() {
             try {
                 showStatus('Initializing Firebase...');
                 firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
                 db = firebase.firestore();
-
                 classesCollection = db.collection('classes');
-
-                if (userRole === 'faculty') {
-                    facultyView.classList.remove('hidden');
-                    studentView.classList.add('hidden');
-                    await displayFacultyDashboard();
-                } else if (userRole === 'student') {
-                    facultyView.classList.add('hidden');
-                    studentView.classList.remove('hidden');
-                }
-
-                loginContainer.classList.add('hidden');
-                appContainer.classList.remove('hidden');
+                
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            userRole = userDoc.data().role;
+                            if (userRole === 'faculty') {
+                                facultyView.classList.remove('hidden');
+                                studentView.classList.add('hidden');
+                                await loadModels();
+                                displayFacultyDashboard();
+                            } else if (userRole === 'student') {
+                                facultyView.classList.add('hidden');
+                                studentView.classList.remove('hidden');
+                            }
+                            loginContainer.classList.add('hidden');
+                            appContainer.classList.remove('hidden');
+                            showStatus(`Logged in as ${user.email} (${userRole})`, 'success');
+                        } else {
+                            // This shouldn't happen, but good for error handling
+                            await auth.signOut();
+                            showStatus('User data not found. Please log in again.', 'error');
+                        }
+                    } else {
+                        // User is signed out
+                        currentUser = null;
+                        userRole = null;
+                        appContainer.classList.add('hidden');
+                        loginContainer.classList.remove('hidden');
+                        showStatus('Please log in to continue.', 'info');
+                    }
+                });
                 
                 // General Logout Listeners
-                studentLogoutButton.addEventListener('click', () => {
-                    appContainer.classList.add('hidden');
-                    loginContainer.classList.remove('hidden');
-                    showStatus('You have been logged out.', 'info');
+                studentLogoutButton.addEventListener('click', async () => {
+                    await auth.signOut();
                 });
-                facultyLogoutButton.addEventListener('click', () => {
-                    appContainer.classList.add('hidden');
-                    loginContainer.classList.remove('hidden');
-                    showStatus('You have been logged out.', 'info');
+                facultyLogoutButton.addEventListener('click', async () => {
+                    await auth.signOut();
                 });
                 
                 // Faculty-specific listeners
@@ -957,44 +981,75 @@
         // Handle login form submission
         facultyLoginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const username = document.getElementById('faculty-username').value;
-            const collegeId = document.getElementById('faculty-college-id').value;
+            const email = facultyEmailLogin.value;
+            const password = facultyPasswordLogin.value;
 
-            if (username === 'admin' && collegeId === 'CID123') {
-                showStatus('Faculty login successful!', 'success');
-                await loadModels();
-                initializeApp('faculty');
-            } else {
-                showStatus('Invalid faculty username or College ID. Please try again.', 'error');
+            try {
+                showStatus('Logging in as faculty...');
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                showStatus(`Login failed: ${error.message}`, 'error');
+                console.error('Login error:', error);
             }
         });
 
         studentLoginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const rollNumber = document.getElementById('student-roll-number').value;
-            const password = document.getElementById('student-password').value;
+            const email = studentEmailLogin.value;
+            const password = studentPasswordLogin.value;
 
-            if (rollNumber === '12345' && password === 'studentpass') {
-                showStatus('Student login successful!', 'success');
-                initializeApp('student');
-            } else {
-                showStatus('Invalid student roll number or password. Please try again.', 'error');
+            try {
+                showStatus('Logging in as student...');
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                showStatus(`Login failed: ${error.message}`, 'error');
+                console.error('Login error:', error);
             }
         });
 
-        // Handle create account form submission (fake)
-        facultyCreateForm.addEventListener('submit', (event) => {
+        // Handle create account form submission
+        facultyCreateForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            showStatus('Faculty account created successfully!', 'success');
-            facultyCreateForm.classList.add('hidden');
-            facultyLoginForm.classList.remove('hidden');
+            const email = document.getElementById('new-faculty-email').value;
+            const password = document.getElementById('new-faculty-password').value;
+            const name = document.getElementById('new-faculty-name').value;
+
+            try {
+                showStatus('Creating faculty account...');
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    email: email,
+                    name: name,
+                    role: 'faculty'
+                });
+                showStatus('Faculty account created successfully!', 'success');
+            } catch (error) {
+                showStatus(`Account creation failed: ${error.message}`, 'error');
+                console.error('Account creation error:', error);
+            }
         });
 
-        studentCreateForm.addEventListener('submit', (event) => {
+        studentCreateForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            showStatus('Student account created successfully!', 'success');
-            studentCreateForm.classList.add('hidden');
-            studentLoginForm.classList.remove('hidden');
+            const email = document.getElementById('new-student-email').value;
+            const password = document.getElementById('new-student-password').value;
+            const name = document.getElementById('new-student-name').value;
+            const rollNumber = document.getElementById('new-student-roll').value;
+
+            try {
+                showStatus('Creating student account...');
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    email: email,
+                    name: name,
+                    rollNumber: rollNumber,
+                    role: 'student'
+                });
+                showStatus('Student account created successfully!', 'success');
+            } catch (error) {
+                showStatus(`Account creation failed: ${error.message}`, 'error');
+                console.error('Account creation error:', error);
+            }
         });
 
         // Tab and form switching logic
@@ -1043,7 +1098,7 @@
         // Faculty Class Management Functions
         async function displayFacultyDashboard() {
             showStatus('Fetching your classes...');
-            const classesSnapshot = await classesCollection.get();
+            const classesSnapshot = await classesCollection.where('facultyId', '==', currentUser.uid).get();
             classListEl.innerHTML = '';
             if (classesSnapshot.empty) {
                 noClassesMessage.classList.remove('hidden');
@@ -1103,7 +1158,8 @@
             try {
                 await classesCollection.doc(classCode).set({
                     className: className,
-                    classCode: classCode
+                    classCode: classCode,
+                    facultyId: currentUser.uid
                 });
                 generatedClassCodeEl.textContent = classCode;
                 classCodeDisplay.classList.remove('hidden');
@@ -1680,6 +1736,11 @@
                 link.click();
             });
         }
+
+        // Initial app load logic
+        document.addEventListener('DOMContentLoaded', async () => {
+            initializeApp();
+        });
     </script>
 </body>
 </html>
