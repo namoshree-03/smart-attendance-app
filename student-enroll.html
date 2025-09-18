@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Enrollment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .container {
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-4 md:p-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Student Enrollment</h1>
+
+        <div id="status" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-8 hidden" role="alert">
+            <p id="status-message" class="font-bold"></p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-6" id="enroll-header">Enroll in a Class</h2>
+            <form id="enroll-form" class="space-y-4">
+                <div>
+                    <label for="student-name" class="block text-gray-700 font-medium mb-1">Student Name</label>
+                    <input type="text" id="student-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="roll-number" class="block text-gray-700 font-medium mb-1">Roll Number</label>
+                    <input type="text" id="roll-number" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="enroll-image" class="block text-gray-700 font-medium mb-1">Upload Face Image</label>
+                    <input type="file" id="enroll-image" accept="image/*" required class="w-full text-gray-700">
+                </div>
+                <button type="submit" id="enroll-button" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                    Enroll
+                </button>
+            </form>
+            <div id="enroll-success" class="hidden text-center mt-6">
+                <p class="text-green-600 font-bold text-lg">Enrollment Successful!</p>
+                <p class="text-gray-600">You can now close this page.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCN2UNCt6ZkfDyDj41pQATgjGGpfvnsuQo",
+            authDomain: "smartattendance-a4cf6.firebaseapp.com",
+            projectId: "smartattendance-a4cf6",
+            storageBucket: "smartattendance-a4cf6.firebasestorage.app",
+            messagingSenderId: "124561541485",
+            appId: "1:124561541485:web:18ba0745ca7fbe2ec33264",
+            measurementId: "G-0RP9STN3J4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const enrollForm = document.getElementById('enroll-form');
+        const enrollSuccessDiv = document.getElementById('enroll-success');
+        const classId = new URLSearchParams(window.location.search).get('classId');
+
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            const statusMessageEl = document.getElementById('status-message');
+            statusMessageEl.textContent = message;
+            statusEl.classList.remove('hidden', 'bg-blue-100', 'bg-green-100', 'bg-red-100');
+            if (type === 'success') statusEl.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+            else if (type === 'error') statusEl.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+            else statusEl.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
+        }
+
+        async function loadModels() {
+            showStatus('Loading face detection models...', 'info');
+            const modelsPath = './models/';
+            await faceapi.nets.ssdMobilenetv1.loadFromUri(modelsPath);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath);
+            showStatus('Models loaded successfully.', 'success');
+        }
+
+        async function getFaceDescriptor(image) {
+            const detections = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor();
+            return detections ? detections.descriptor : null;
+        }
+
+        async function handleEnroll(event) {
+            event.preventDefault();
+            if (!classId) {
+                showStatus('Invalid enrollment link.', 'error');
+                return;
+            }
+            const name = document.getElementById('student-name').value;
+            const rollNumber = document.getElementById('roll-number').value;
+            const imageInput = document.getElementById('enroll-image');
+            const file = imageInput.files[0];
+            if (!file) {
+                showStatus('Please upload an image.', 'error');
+                return;
+            }
+
+            const image = new Image();
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            await new Promise(resolve => reader.onload = () => {
+                image.src = reader.result;
+                resolve();
+            });
+
+            showStatus('Processing image and extracting face descriptor...');
+            const descriptor = await getFaceDescriptor(image);
+            if (!descriptor) {
+                showStatus('No face detected. Please upload a clearer photo.', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Saving student data to Firestore...');
+                const studentDocRef = db.collection('classes').doc(classId).collection('students').doc(rollNumber);
+                await studentDocRef.set({
+                    name: name,
+                    rollNumber: rollNumber,
+                    descriptor: Array.from(descriptor),
+                    attendanceHistory: []
+                });
+                enrollForm.classList.add('hidden');
+                enrollSuccessDiv.classList.remove('hidden');
+                showStatus('Enrollment successful!', 'success');
+            } catch (error) {
+                showStatus(`Failed to enroll: ${error.message}`, 'error');
+                console.error('Enrollment error:', error);
+            }
+        }
+
+        if (classId) {
+            loadModels();
+            enrollForm.addEventListener('submit', handleEnroll);
+        } else {
+            document.getElementById('enroll-header').textContent = 'Error: Invalid Link';
+            enrollForm.classList.add('hidden');
+            showStatus('The enrollment link is invalid.', 'error');
+        }
+    </script>
+</body>
+</html>
