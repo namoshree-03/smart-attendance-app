@@ -130,17 +130,53 @@
             justify-content: space-between;
             align-items: flex-start;
         }
+        /* New styles for the pop-up status buffer */
+        #status-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+        }
+        #status-popup.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: translate(-50%, -40%);
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #1a1a1a;
+            animation: spin 1s ease infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-blue-50 font-sans">
 
+    <div id="status-popup" class="hidden">
+        <div class="loading-spinner"></div>
+        <p id="status-message" class="font-semibold text-gray-700"></p>
+    </div>
+
     <div class="container mx-auto p-4 md:p-8">
 
         <h1 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-8 tracking-tight">Smart Attendance System</h1>
-
-        <div id="status" class="bg-blue-200 border-l-4 border-blue-600 text-blue-800 p-4 mb-8 hidden rounded-lg" role="alert">
-            <p id="status-message" class="font-semibold"></p>
-        </div>
         
         <div id="student-enrollment-link-page" class="card hidden md:w-2/3 lg:w-1/2 mx-auto">
              <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Enroll in <span id="enrollment-class-name" class="text-blue-600"></span></h2>
@@ -194,7 +230,6 @@
                 <p class="text-gray-500 mb-10">Sign in to your account</p>
                 <button id="login-nav-button" class="w-full btn-primary mb-4">Login</button>
                 <button id="register-nav-button" class="w-full btn-secondary mb-4">Register</button>
-                <a href="#" id="guest-link" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition duration-200">Continue as a guest</a>
             </div>
 
             <div id="login-container" class="theme-card hidden">
@@ -226,15 +261,6 @@
                     <button type="submit" class="w-full btn-primary">
                         Login
                     </button>
-                    <div class="mt-4 flex items-center justify-center space-x-4">
-                        <span class="text-sm text-gray-500">Or login with</span>
-                        <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
-                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Google_D_Logo_%282019-2023%29.svg" alt="Google" class="w-5 h-5">
-                        </button>
-                        <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
-                             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="w-5 h-5">
-                        </button>
-                    </div>
                 </form>
 
                 <form id="student-login-form" class="hidden">
@@ -252,15 +278,6 @@
                     <button type="submit" class="w-full btn-primary">
                         Login
                     </button>
-                     <div class="mt-4 flex items-center justify-center space-x-4">
-                        <span class="text-sm text-gray-500">Or login with</span>
-                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
-                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Google_D_Logo_%282019-2023%29.svg" alt="Google" class="w-5 h-5">
-                         </button>
-                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
-                             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="w-5 h-5">
-                         </button>
-                    </div>
                 </form>
 
                 <div class="mt-6 text-sm text-gray-500">
@@ -298,15 +315,6 @@
                     <button type="submit" class="w-full btn-primary">
                         Register
                     </button>
-                    <div class="mt-4 flex items-center justify-center space-x-4">
-                        <span class="text-sm text-gray-500">Or register with</span>
-                        <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
-                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Google_D_Logo_%282019-2023%29.svg" alt="Google" class="w-5 h-5">
-                         </button>
-                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
-                             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="w-5 h-5">
-                         </button>
-                    </div>
                 </form>
 
                 <form id="student-create-form" class="hidden mb-4">
@@ -329,15 +337,6 @@
                     <button type="submit" class="w-full btn-primary">
                         Register
                     </button>
-                     <div class="mt-4 flex items-center justify-center space-x-4">
-                        <span class="text-sm text-gray-500">Or register with</span>
-                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
-                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Google_D_Logo_%282019-2023%29.svg" alt="Google" class="w-5 h-5">
-                         </button>
-                         <button class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition duration-200">
-                             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" class="w-5 h-5">
-                         </button>
-                    </div>
                 </form>
 
                 <div class="mt-6 text-sm text-gray-500">
@@ -458,7 +457,7 @@
 
                         <nav class="flex space-x-4 mb-8 border-b-2 border-gray-200">
                             <button id="nav-class-dashboard" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Dashboard</button>
-                            <button id="nav-class-enroll" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600 hidden">Enroll Student</button>
+                            <button id="nav-class-enroll" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Enroll Student</button>
                             <button id="nav-class-mark" class="px-4 py-3 rounded-t-lg text-gray-700 font-semibold border-b-2 border-transparent transition duration-200 hover:border-blue-600">Mark Attendance</button>
                         </nav>
     
@@ -592,7 +591,7 @@
         <div class="card w-full max-w-sm mx-4 md:mx-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold">Edit Student Info</h3>
-                <button id="close-modal" class="text-gray-500 hover:text-gray-800">&times;</button>
+                <button type="button" id="close-modal" class="text-gray-500 hover:text-gray-800">&times;</button>
             </div>
             <form id="edit-form">
                 <input type="hidden" id="edit-roll-number-original">
@@ -656,7 +655,7 @@
         let userRole = null;
         const appContainer = document.getElementById('app-container');
         const loginContainer = document.getElementById('login-container');
-        const statusEl = document.getElementById('status');
+        const statusPopup = document.getElementById('status-popup');
         const statusMessageEl = document.getElementById('status-message');
         const studentLogoutButton = document.getElementById('logout-button-student');
         const facultyLogoutButton = document.getElementById('logout-button-faculty-dash');
@@ -855,17 +854,13 @@
         }
 
         // Helper function to show status messages
-        function showStatus(message, type = 'info') {
+        function showStatus(message) {
             statusMessageEl.textContent = message;
-            statusEl.classList.remove('hidden');
-            statusEl.classList.remove('bg-blue-200', 'border-blue-600', 'text-blue-800', 'bg-red-200', 'border-red-600', 'text-red-800', 'bg-green-200', 'border-green-600', 'text-green-800');
-            if (type === 'info') {
-                statusEl.classList.add('bg-blue-200', 'border-blue-600', 'text-blue-800');
-            } else if (type === 'error') {
-                statusEl.classList.add('bg-red-200', 'border-red-600', 'text-red-800');
-            } else if (type === 'success') {
-                statusEl.classList.add('bg-green-200', 'border-green-600', 'text-green-800');
-            }
+            statusPopup.classList.remove('hidden');
+        }
+        
+        function hideStatus() {
+            statusPopup.classList.add('hidden');
         }
 
         // Load face-api.js models from local directory
@@ -875,7 +870,8 @@
             await faceapi.nets.ssdMobilenetv1.loadFromUri(modelsPath);
             await faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath);
             await faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath);
-            showStatus('Models loaded successfully.', 'success');
+            showStatus('Models loaded successfully.');
+            setTimeout(hideStatus, 1000); 
         }
         
         function getParameterByName(name, url = window.location.href) {
@@ -891,7 +887,9 @@
         async function initializeApp() {
             try {
                 showStatus('Initializing Firebase...');
-                firebase.initializeApp(firebaseConfig);
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
                 auth = firebase.auth();
                 db = firebase.firestore();
                 classesCollection = db.collection('classes');
@@ -910,23 +908,22 @@
                             } else if (userRole === 'student') {
                                 facultyView.classList.add('hidden');
                                 studentView.classList.remove('hidden');
+                                hideStatus();
                             }
                             mainAuthPage.classList.add('hidden');
                             appContainer.classList.remove('hidden');
-                            showStatus(`Logged in as ${user.email} (${userRole})`, 'success');
                         } else {
-                            // This shouldn't happen, but good for error handling
                             await auth.signOut();
-                            showStatus('User data not found. Please log in again.', 'error');
+                            showStatus('User data not found. Please log in again.');
+                            setTimeout(hideStatus, 3000);
                         }
                     } else {
-                        // User is signed out
                         currentUser = null;
                         userRole = null;
                         appContainer.classList.add('hidden');
                         mainAuthPage.classList.remove('hidden');
                         showAuthLandingPage();
-                        showStatus('Please log in to continue.', 'info');
+                        hideStatus();
                     }
                 });
                 
@@ -1005,7 +1002,8 @@
                     if(image.src) {
                         handleAttendance(image, uploadedCanvas);
                     } else {
-                        showStatus('Please upload an image first.', 'error');
+                        showStatus('Please upload an image first.');
+                        setTimeout(hideStatus, 3000);
                     }
                 });
                 attendanceImageInput.addEventListener('change', (e) => handleImagePreview(e, uploadedImagePreview, uploadedImagePreviewContainer));
@@ -1018,10 +1016,12 @@
                 
                 copyLinkButton.addEventListener('click', () => {
                     navigator.clipboard.writeText(classShareCodeEl.textContent).then(() => {
-                        showStatus('Code copied to clipboard!', 'success');
+                        showStatus('Code copied to clipboard!');
+                        setTimeout(hideStatus, 3000);
                     }).catch(err => {
                         console.error('Failed to copy text: ', err);
-                        showStatus('Failed to copy code.', 'error');
+                        showStatus('Failed to copy code.');
+                        setTimeout(hideStatus, 3000);
                     });
                 });
                 
@@ -1105,8 +1105,13 @@
                 studentEnrollForm.addEventListener('submit', handleStudentEnroll);
                 studentEnrollImageInput.addEventListener('change', (e) => handleImagePreview(e, studentEnrollImagePreview, studentEnrollImagePreviewContainer));
 
+                // Edit Modal Listeners
+                closeBtn.addEventListener('click', () => editModal.classList.add('hidden'));
+                cancelBtn.addEventListener('click', () => editModal.classList.add('hidden'));
+                editForm.addEventListener('submit', handleEditStudent);
+
             } catch (error) {
-                showStatus(`Firebase initialization failed: ${error.message}`, 'error');
+                showStatus(`Firebase initialization failed.`);
                 console.error('Firebase initialization error:', error);
             }
         }
@@ -1121,7 +1126,8 @@
                 showStatus('Logging in as faculty...');
                 await auth.signInWithEmailAndPassword(email, password);
             } catch (error) {
-                showStatus(`Login failed: ${error.message}`, 'error');
+                showStatus(`Login failed.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Login error:', error);
             }
         });
@@ -1135,7 +1141,8 @@
                 showStatus('Logging in as student...');
                 await auth.signInWithEmailAndPassword(email, password);
             } catch (error) {
-                showStatus(`Login failed: ${error.message}`, 'error');
+                showStatus(`Login failed.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Login error:', error);
             }
         });
@@ -1155,9 +1162,11 @@
                     name: name,
                     role: 'faculty'
                 });
-                showStatus('Faculty account created successfully!', 'success');
+                showStatus('Faculty account created successfully!');
+                setTimeout(hideStatus, 3000);
             } catch (error) {
-                showStatus(`Account creation failed: ${error.message}`, 'error');
+                showStatus(`Account creation failed.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Account creation error:', error);
             }
         });
@@ -1178,9 +1187,11 @@
                     rollNumber: rollNumber,
                     role: 'student'
                 });
-                showStatus('Student account created successfully!', 'success');
+                showStatus('Student account created successfully!');
+                setTimeout(hideStatus, 3000);
             } catch (error) {
-                showStatus(`Account creation failed: ${error.message}`, 'error');
+                showStatus(`Account creation failed.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Account creation error:', error);
             }
         });
@@ -1251,13 +1262,14 @@
                     `;
                     classListEl.appendChild(li);
                 });
-                showStatus('Classes loaded successfully.', 'success');
+                showStatus('Classes loaded successfully.');
+                setTimeout(hideStatus, 3000);
             }
         }
 
         async function handleRemoveClass(classId) {
             if (confirm("Are you sure you want to remove this class and all its students? This cannot be undone.")) {
-                showStatus(`Removing class with ID ${classId}...`, 'info');
+                showStatus(`Removing class with ID ${classId}...`);
                 try {
                     const studentsSnapshot = await classesCollection.doc(classId).collection('students').get();
                     const batch = db.batch();
@@ -1267,10 +1279,12 @@
                     await batch.commit();
 
                     await classesCollection.doc(classId).delete();
-                    showStatus('Class and all its students removed successfully.', 'success');
+                    showStatus('Class and all its students removed successfully.');
+                    setTimeout(hideStatus, 3000);
                     await displayFacultyDashboard();
                 } catch (error) {
-                    showStatus(`Failed to remove class: ${error.message}`, 'error');
+                    showStatus(`Failed to remove class.`);
+                    setTimeout(hideStatus, 3000);
                     console.error('Removal error:', error);
                 }
             }
@@ -1290,10 +1304,13 @@
                 });
                 generatedClassCodeEl.textContent = classCode;
                 classCodeDisplay.classList.remove('hidden');
-                showStatus('Class created successfully! You can find the code above.', 'success');
+                showStatus('Class created successfully! You can find the code above.');
+                setTimeout(hideStatus, 3000);
                 addClassForm.reset();
+                displayFacultyDashboard(); 
             } catch (error) {
-                showStatus(`Failed to create class: ${error.message}`, 'error');
+                showStatus(`Failed to create class.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Class creation error:', error);
             }
         }
@@ -1373,7 +1390,8 @@
             
             const file = imageInput.files[0];
             if (!file) {
-                showStatus('Please upload or take a photo.', 'error');
+                showStatus('Please upload or take a photo.');
+                setTimeout(hideStatus, 3000);
                 return;
             }
             
@@ -1390,7 +1408,8 @@
             try {
                 const descriptor = await getFaceDescriptor(image);
                 if (!descriptor) {
-                    showStatus('No face detected. Please upload a clearer photo.', 'error');
+                    showStatus('No face detected. Please upload a clearer photo.');
+                    setTimeout(hideStatus, 3000);
                     return;
                 }
                 
@@ -1402,10 +1421,12 @@
                     attendanceHistory: []
                 });
                 
-                showStatus(`Successfully enrolled in the class!`, 'success');
+                showStatus(`Successfully enrolled in the class!`);
+                setTimeout(hideStatus, 3000);
                 enrollLinkForm.reset();
             } catch (error) {
-                showStatus(`Failed to enroll: ${error.message}`, 'error');
+                showStatus(`Failed to enroll.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Enrollment error:', error);
             }
         }
@@ -1420,7 +1441,8 @@
 
             const file = imageInput.files[0];
             if (!file) {
-                showStatus('Please upload or take a photo.', 'error');
+                showStatus('Please upload or take a photo.');
+                setTimeout(hideStatus, 3000);
                 return;
             }
 
@@ -1436,7 +1458,8 @@
             const descriptor = await getFaceDescriptor(image);
 
             if (!descriptor) {
-                showStatus('No face detected. Please upload a clearer photo.', 'error');
+                showStatus('No face detected. Please upload a clearer photo.');
+                setTimeout(hideStatus, 3000);
                 return;
             }
 
@@ -1446,7 +1469,8 @@
                 // Check if the class code is valid
                 const classDoc = await db.collection('classes').doc(classCode).get();
                 if (!classDoc.exists) {
-                    showStatus('Invalid Class Code. Please try again.', 'error');
+                    showStatus('Invalid Class Code. Please try again.');
+                    setTimeout(hideStatus, 3000);
                     return;
                 }
 
@@ -1457,11 +1481,13 @@
                     descriptor: Array.from(descriptor),
                     attendanceHistory: []
                 });
-                showStatus(`Student ${name} (Roll: ${rollNumber}) enrolled successfully in class ${classCode}!`, 'success');
+                showStatus(`Student ${name} (Roll: ${rollNumber}) enrolled successfully in class ${classCode}!`);
+                setTimeout(hideStatus, 3000);
                 studentEnrollForm.reset();
                 studentEnrollImagePreviewContainer.classList.add('hidden');
             } catch (error) {
-                showStatus(`Failed to enroll student: ${error.message}`, 'error');
+                showStatus(`Failed to enroll student.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Enrollment error:', error);
             }
         }
@@ -1497,7 +1523,8 @@
 
             const file = imageInput.files[0];
             if (!file) {
-                showStatus('Please upload or take a photo.', 'error');
+                showStatus('Please upload or take a photo.');
+                setTimeout(hideStatus, 3000);
                 return;
             }
 
@@ -1513,12 +1540,14 @@
             const descriptor = await getFaceDescriptor(image);
 
             if (!descriptor) {
-                showStatus('No face detected. Please upload a clearer photo.', 'error');
+                showStatus('No face detected. Please upload a clearer photo.');
+                setTimeout(hideStatus, 3000);
                 return;
             }
 
             try {
                 showStatus('Saving student data to Firestore...');
+                await new Promise(r => setTimeout(r, 1000)); // Simulate a delay
                 const studentsInClassCollection = db.collection('classes').doc(currentClassId).collection('students');
                 await studentsInClassCollection.doc(rollNumber).set({
                     name: name,
@@ -1526,14 +1555,16 @@
                     descriptor: Array.from(descriptor),
                     attendanceHistory: []
                 });
-                showStatus(`Student ${name} (Roll: ${rollNumber}) enrolled successfully!`, 'success');
+                showStatus(`Student ${name} (Roll: ${rollNumber}) enrolled successfully!`);
+                setTimeout(hideStatus, 3000);
                 await updateFaceMatcher(currentClassId);
                 await displayClassDashboardData(currentClassId);
                 enrollForm.reset();
                 enrollImagePreviewContainer.classList.add('hidden');
                 showClassPage('class-page-dashboard');
             } catch (error) {
-                showStatus(`Failed to enroll student: ${error.message}`, 'error');
+                showStatus(`Failed to enroll student.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Enrollment error:', error);
             }
         }
@@ -1556,80 +1587,96 @@
             const newRollNumber = editRollInput.value;
             const originalRollNumber = editOriginalRollInput.value;
             const newImageFile = editImageInput.files[0];
-
+        
             if (newName === '' || newRollNumber === '') {
-                showStatus('Name and Roll Number cannot be empty.', 'error');
+                showStatus('Name and Roll Number cannot be empty.');
+                setTimeout(hideStatus, 3000);
                 return;
             }
-
+        
+            showStatus('Updating student information...');
+        
             try {
                 let updatedData = {
-                    name: newName,
-                    rollNumber: newRollNumber
+                    name: newName
                 };
                 let newDescriptor = null;
-
+        
                 if (newImageFile) {
-                    showStatus('Processing new face image...', 'info');
                     const img = new Image();
                     img.src = URL.createObjectURL(newImageFile);
                     await new Promise(resolve => img.onload = resolve);
                     newDescriptor = await getFaceDescriptor(img);
                     URL.revokeObjectURL(img.src);
-
+        
                     if (!newDescriptor) {
-                        showStatus('No face detected in the new image. Please upload a clearer photo or try again.', 'error');
+                        showStatus('No face detected in the new image. Please upload a clearer photo or try again.');
+                        setTimeout(hideStatus, 3000);
                         return;
                     }
                     updatedData.descriptor = Array.from(newDescriptor);
                 }
                 
                 const studentsInClassCollection = db.collection('classes').doc(currentClassId).collection('students');
-
+                const studentDocRef = studentsInClassCollection.doc(originalRollNumber);
+        
                 if (newRollNumber !== originalRollNumber) {
-                    showStatus('Updating roll number and student data...', 'info');
-                    const studentSnapshot = await studentsInClassCollection.doc(originalRollNumber).get();
-                    const studentData = studentSnapshot.data();
-
+                    const studentData = (await studentDocRef.get()).data();
                     if (studentData) {
-                        await studentsInClassCollection.doc(newRollNumber).set({
-                            ...studentData,
-                            ...updatedData
+                        // Check for existing roll number to avoid overwrite
+                        const existingRollDoc = await studentsInClassCollection.doc(newRollNumber).get();
+                        if (existingRollDoc.exists) {
+                            showStatus(`A student with roll number ${newRollNumber} already exists.`);
+                            setTimeout(hideStatus, 3000);
+                            return;
+                        }
+
+                        // Use a transaction for atomic update and delete
+                        await db.runTransaction(async (transaction) => {
+                            const newDocRef = studentsInClassCollection.doc(newRollNumber);
+                            transaction.set(newDocRef, {
+                                ...studentData,
+                                ...updatedData,
+                                rollNumber: newRollNumber 
+                            });
+                            transaction.delete(studentDocRef);
                         });
-                        await studentsInClassCollection.doc(originalRollNumber).delete();
                     }
                 } else {
-                    showStatus('Updating student information...', 'info');
-                    await studentsInClassCollection.doc(originalRollNumber).update(updatedData);
+                    await studentDocRef.update(updatedData);
                 }
-
-                showStatus('Student information updated successfully!', 'success');
+        
+                showStatus('Student information updated successfully!');
+                setTimeout(hideStatus, 3000);
                 editModal.classList.add('hidden');
                 editImageInput.value = '';
                 editImagePreview.src = '#';
                 editImagePreviewContainer.classList.add('hidden');
-
+        
                 await updateFaceMatcher(currentClassId);
                 await displayClassDashboardData(currentClassId);
             } catch (error) {
-                showStatus(`Failed to update student: ${error.message}`, 'error');
+                showStatus(`Failed to update student.`);
+                setTimeout(hideStatus, 3000);
                 console.error('Update error:', error);
             }
         }
-
+        
 
         // Function to delete a student from the database (now class-specific)
         async function handleRemoveStudent(rollNumber, classId) {
             if (confirm(`Are you sure you want to remove student with roll number ${rollNumber}?`)) {
-                showStatus(`Removing student with roll number ${rollNumber}...`, 'info');
+                showStatus(`Removing student with roll number ${rollNumber}...`);
                 try {
                     const studentsInClassCollection = db.collection('classes').doc(classId).collection('students');
                     await studentsInClassCollection.doc(rollNumber).delete();
-                    showStatus(`Student with roll number ${rollNumber} removed successfully.`, 'success');
+                    showStatus(`Student with roll number ${rollNumber} removed successfully.`);
+                    setTimeout(hideStatus, 3000);
                     await updateFaceMatcher(classId);
                     await displayClassDashboardData(classId);
                 } catch (error) {
-                    showStatus(`Failed to remove student: ${error.message}`, 'error');
+                    showStatus(`Failed to remove student.`);
+                    setTimeout(hideStatus, 3000);
                     console.error('Removal error:', error);
                 }
             }
@@ -1648,10 +1695,12 @@
 
             if (labeledDescriptors.length > 0) {
                 faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, MIN_DISTANCE_THRESHOLD);
-                showStatus('Database updated. Ready for attendance.', 'success');
+                showStatus('Database updated. Ready for attendance.');
+                setTimeout(hideStatus, 3000);
             } else {
                 faceMatcher = null;
-                showStatus('No students enrolled yet. Please enroll a student first.', 'info');
+                showStatus('No students enrolled yet. Please enroll a student first.');
+                setTimeout(hideStatus, 3000);
             }
         }
 
@@ -1669,7 +1718,8 @@
                 switchButton.classList.remove('hidden');
             } catch (err) {
                 console.error("Error accessing webcam: ", err);
-                showStatus('Could not access the webcam. Please ensure permissions are granted or a camera is available.', 'error');
+                showStatus('Could not access the webcam.');
+                setTimeout(hideStatus, 3000);
                 switchButton.classList.add('hidden');
             }
         }
@@ -1746,7 +1796,8 @@
         
             } catch (err) {
                 console.error("Error accessing webcam: ", err);
-                showStatus('Could not access the webcam. Please ensure permissions are granted or a camera is available.', 'error');
+                showStatus('Could not access the webcam.');
+                setTimeout(hideStatus, 3000);
                 switchCameraButton.classList.add('hidden');
             }
         }
@@ -1755,7 +1806,8 @@
         async function handleAttendance(imageSource, canvasSource = attendanceCanvas) {
 
             if (!faceMatcher) {
-                showStatus('No students enrolled. Please enroll a student first.', 'error');
+                showStatus('No students enrolled. Please enroll a student first.');
+                setTimeout(hideStatus, 3000);
                 return;
             }
 
@@ -1770,7 +1822,7 @@
 
             // Resetting the count
             detectedCountEl.textContent = 'Faces Detected: 0';
-            showStatus('Processing photo and matching faces...', 'info');
+            showStatus('Processing photo and matching faces...');
 
             let imageToProcess;
             let canvasToDraw;
@@ -1794,7 +1846,8 @@
             detectedCountEl.textContent = `Faces Detected: ${detections.length}`;
 
             if (detections.length === 0) {
-                showStatus('No faces detected in the photo. Please take a different photo.', 'error');
+                showStatus('No faces detected in the photo. Please take a different photo.');
+                setTimeout(hideStatus, 3000);
                 return;
             }
 
@@ -1840,14 +1893,16 @@
 
             presentStudentsList.innerHTML = '';
             if (presentStudents.size > 0) {
-                showStatus(`Attendance marked! ${presentStudents.size} students identified.`, 'success');
+                showStatus(`Attendance marked! ${presentStudents.size} students identified.`);
+                setTimeout(hideStatus, 3000);
                 presentStudents.forEach(name => {
                     const li = document.createElement('li');
                     li.textContent = name;
                     presentStudentsList.appendChild(li);
                 });
             } else {
-                showStatus('No matching students found in the photo.', 'error');
+                showStatus('No matching students found in the photo.');
+                setTimeout(hideStatus, 3000);
                 const li = document.createElement('li');
                 li.textContent = 'No students identified.';
                 presentStudentsList.appendChild(li);
@@ -1876,4 +1931,3 @@
     </script>
 </body>
 </html>
-
