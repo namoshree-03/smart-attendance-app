@@ -166,40 +166,9 @@
             100% { transform: rotate(360deg); }
         }
 
-        .list-container {
-            max-height: 200px;
-            overflow-y: hidden;
-            transition: max-height 0.3s ease-in-out;
-        }
-        .list-container.expanded {
-            max-height: none;
-        }
-        .student-item {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            background-color: #fff;
-            border-radius: 0.75rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            margin-bottom: 0.5rem;
-            transition: all 0.2s ease-in-out;
-        }
-        .student-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .student-profile-pic {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 1rem;
-            background-color: #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: #6b7280;
+        /* Hides the enroll student option from the navigation */
+        #nav-class-enroll {
+            display: none;
         }
     </style>
 </head>
@@ -514,12 +483,11 @@
                             </div>
                             <div class="mt-8 pt-8 border-t-2 border-gray-200">
                                 <h3 class="text-xl font-semibold text-gray-700 mb-4">Enrolled Students</h3>
-                                <div id="class-student-list-container" class="list-container">
+                                <div id="class-student-list-container">
                                     <p class="text-gray-500 text-center" id="no-class-students-message">No students enrolled in this class yet.</p>
-                                    <ul id="class-student-list" class="flex flex-col space-y-2">
+                                    <ul id="class-student-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         </ul>
                                 </div>
-                                <button id="toggle-student-list" class="w-full mt-4 btn-secondary hidden">Show All <span id="toggle-icon">&darr;</span></button>
                             </div>
                         </div>
     
@@ -767,13 +735,11 @@
         const classDashboardTotalStudents = document.getElementById('class-dashboard-total-students');
         const classDashboardPresentToday = document.getElementById('class-dashboard-present-today');
         const classDashboardLastCheck = document.getElementById('class-dashboard-last-check');
-        const classStudentListContainer = document.getElementById('class-student-list-container');
         const classStudentListEl = document.getElementById('class-student-list');
         const noClassStudentsMessage = document.getElementById('no-class-students-message');
-        const toggleStudentListBtn = document.getElementById('toggle-student-list');
-        const toggleIcon = document.getElementById('toggle-icon');
         const classShareCodeEl = document.getElementById('class-share-code');
         const copyLinkButton = document.getElementById('copy-link-button');
+
 
         let faceMatcher = null;
         let studentsCollection;
@@ -1002,18 +968,6 @@
                 });
                 classEnrollNav.addEventListener('click', () => showClassPage('class-page-enroll'));
                 classMarkNav.addEventListener('click', () => showClassPage('class-page-mark'));
-
-                // Toggling student list visibility
-                toggleStudentListBtn.addEventListener('click', () => {
-                    const isExpanded = classStudentListContainer.classList.contains('expanded');
-                    if (isExpanded) {
-                        classStudentListContainer.classList.remove('expanded');
-                        toggleStudentListBtn.innerHTML = 'Show All <span id="toggle-icon">&darr;</span>';
-                    } else {
-                        classStudentListContainer.classList.add('expanded');
-                        toggleStudentListBtn.innerHTML = 'Hide <span id="toggle-icon">&uarr;</span>';
-                    }
-                });
 
                 // Enrollment and Attendance listeners (now inside the class view)
                 enrollForm.addEventListener('submit', handleEnroll);
@@ -1407,51 +1361,27 @@
             const studentsInClassCollection = db.collection('classes').doc(classId).collection('students');
             const studentsSnapshot = await studentsInClassCollection.get();
             classStudentListEl.innerHTML = '';
-            const studentCount = studentsSnapshot.size;
-            if (studentCount === 0) {
+            if (studentsSnapshot.empty) {
                 noClassStudentsMessage.classList.remove('hidden');
-                toggleStudentListBtn.classList.add('hidden');
             } else {
                 noClassStudentsMessage.classList.add('hidden');
-                studentsSnapshot.docs.forEach(doc => {
+                studentsSnapshot.forEach(doc => {
                     const student = doc.data();
                     const attendanceCount = student.attendanceHistory ? student.attendanceHistory.length : 0;
                     const li = document.createElement('li');
-                    li.classList.add('student-item', 'flex', 'items-center', 'justify-between');
+                    li.classList.add('flex', 'flex-col', 'md:flex-row', 'items-center', 'justify-between', 'bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm', 'cursor-pointer', 'transition', 'duration-200', 'hover:bg-gray-100');
                     li.innerHTML = `
-                        <div class="flex items-center flex-grow">
-                            <div class="student-profile-pic">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                            </div>
-                            <div class="flex-grow">
-                                <p class="font-semibold text-gray-800">${student.name}</p>
-                                <p class="text-gray-600 text-sm">Roll: ${student.rollNumber}</p>
-                                <p class="text-xs text-green-600 mt-1">Present: ${attendanceCount} / Absent: ${studentCount - attendanceCount}</p>
-                            </div>
+                        <div class="flex-1 text-center md:text-left mb-2 md:mb-0">
+                            <p class="font-semibold text-gray-800">${student.name}</p>
+                            <p class="text-gray-600 text-sm">Roll: ${student.rollNumber} • Attendance: ${attendanceCount}</p>
                         </div>
-                        <div class="flex space-x-2">
-                             <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition duration-200" onclick="event.stopPropagation(); openEditModal(${JSON.stringify(student).replace(/"/g, '&quot;')})">
-                                Edit
-                            </button>
-                            <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition duration-200" onclick="event.stopPropagation(); handleRemoveStudent('${student.rollNumber}', '${classId}')">
-                                Remove
-                            </button>
-                        </div>
+                        <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition duration-200" onclick="event.stopPropagation(); handleRemoveStudent('${student.rollNumber}', '${classId}')">
+                            Remove
+                        </button>
                     `;
+                    li.addEventListener('click', () => openEditModal(student));
                     classStudentListEl.appendChild(li);
                 });
-                
-                if (studentCount > 5) {
-                    toggleStudentListBtn.classList.remove('hidden');
-                    classStudentListContainer.classList.remove('expanded');
-                    toggleStudentListBtn.innerHTML = 'Show All <span id="toggle-icon">&darr;</span>';
-                } else {
-                    toggleStudentListBtn.classList.add('hidden');
-                    classStudentListContainer.classList.remove('expanded');
-                    
-                }
             }
         }
         
