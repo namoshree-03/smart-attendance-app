@@ -181,7 +181,7 @@
 
     <div class="container mx-auto p-4 md:p-8">
 
-        <h1 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-8 tracking-tight">Smart Attendance System</h1>
+        <h1 class="text-3xl md:text-5xl font-bold text-center text-gray-800 mb-8 tracking-tight">Smart Attendance System</h1>
         
         <div id="student-enrollment-link-page" class="card hidden md:w-2/3 lg:w-1/2 mx-auto">
              <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Enroll in <span id="enrollment-class-name" class="text-blue-600"></span></h2>
@@ -576,8 +576,8 @@
                                 <div id="attendance-results" class="mt-8 pt-4 border-t-2 border-gray-200 hidden">
                                     <div class="flex items-center justify-between mb-4">
                                         <h3 class="text-xl font-semibold text-gray-700">Today's Present Students</h3>
-                                        <button id="screenshot-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
-                                            Take Screenshot
+                                        <button id="export-excel-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                            Export to Excel
                                         </button>
                                     </div>
                                     <h4 id="detected-count" class="text-lg font-bold text-gray-800 mb-2">Faces Detected: 0</h4>
@@ -640,7 +640,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
     <script>
         // YOUR FIREBASE CONFIG
@@ -800,7 +800,7 @@
         const attendanceResultsEl = document.getElementById('attendance-results');
         const detectedCountEl = document.getElementById('detected-count');
         const presentStudentsList = document.getElementById('present-students-list');
-        const screenshotButton = document.getElementById('screenshot-button');
+        const exportExcelButton = document.getElementById('export-excel-button');
 
         let webcamStream = null;
         let detectionInterval = null;
@@ -1013,6 +1013,18 @@
                 });
                 attendanceImageInput.addEventListener('change', (e) => handleImagePreview(e, uploadedImagePreview, uploadedImagePreviewContainer));
 
+                // Excel export button
+                exportExcelButton.addEventListener('click', () => {
+                    const presentStudentsNames = [];
+                    presentStudentsList.querySelectorAll('li').forEach(li => {
+                        const nameMatch = li.textContent.match(/^(.*) \(Roll: .*\)$/);
+                        if (nameMatch) {
+                            presentStudentsNames.push(nameMatch[1]);
+                        }
+                    });
+                    handleExcelExport(presentStudentsNames);
+                });
+
                 // Student enrollment via link listeners
                 enrollLinkForm.addEventListener('submit', handleEnrollViaLink);
                 backToMainFromEnrollLinkBtn.addEventListener('click', () => {
@@ -1055,7 +1067,7 @@
                 });
                 facultyEnrollTakePhotoButton.addEventListener('click', () => takeEnrollmentPhoto(facultyEnrollWebcamVideo, enrollImageInput, facultyEnrollTakePhotoButton, facultyEnrollStartWebcamButton, facultyEnrollSwitchCameraButton));
 
-                // Student enrollment photo options
+                // Student-specific enrollment photo options
                 studentEnrollWebcamTabButton.addEventListener('click', () => {
                     studentEnrollWebcamSection.classList.remove('hidden');
                     studentEnrollUploadSection.classList.add('hidden');
@@ -1859,12 +1871,21 @@
             showStatus(`Detected ${detections.length} faces. Marking attendance...`);
 
             const presentStudents = new Set();
+            const studentsData = {};
             const displaySize = { width: imageToProcess.naturalWidth || imageToProcess.width, height: imageToProcess.naturalHeight || imageToProcess.height };
             const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
             const context = canvasToDraw.getContext('2d');
             context.clearRect(0, 0, canvasToDraw.width, canvasToDraw.height);
             faceapi.matchDimensions(canvasToDraw, displaySize);
+
+            const allStudentsSnapshot = await db.collection('classes').doc(currentClassId).collection('students').get();
+            const allStudents = {};
+            allStudentsSnapshot.forEach(doc => {
+                const data = doc.data();
+                allStudents[data.name] = data.rollNumber;
+            });
+
 
             resizedDetections.forEach(detection => {
                 const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
@@ -1873,6 +1894,7 @@
                 if (bestMatch.distance < MIN_DISTANCE_THRESHOLD) {
                     const studentName = bestMatch.label;
                     presentStudents.add(studentName);
+                    studentsData[studentName] = { rollNumber: allStudents[studentName], status: 'Present' };
 
                     const drawBox = new faceapi.draw.DrawBox(box, { label: `${studentName}` });
                     drawBox.draw(canvasToDraw);
@@ -1902,7 +1924,7 @@
                 setTimeout(hideStatus, 3000);
                 presentStudents.forEach(name => {
                     const li = document.createElement('li');
-                    li.textContent = name;
+                    li.textContent = `${name} (Roll: ${allStudents[name]})`;
                     presentStudentsList.appendChild(li);
                 });
             } else {
@@ -1918,15 +1940,63 @@
             await displayClassDashboardData(currentClassId);
         }
 
-        // Handle screenshot functionality
-        function handleScreenshot() {
-            const attendanceContainer = document.getElementById('attendance-results');
-            html2canvas(attendanceContainer).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `attendance-report-${new Date().toISOString().slice(0, 10)}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+        // Handle Excel Export
+        async function handleExcelExport(presentStudentsNames) {
+            showStatus('Generating Excel file...');
+            const today = new Date();
+            const todayDate = today.toLocaleDateString();
+            const todayTime = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+            const classDoc = await db.collection('classes').doc(currentClassId).get();
+            const classData = classDoc.data();
+            const className = classData.className;
+            const classCode = classData.classCode;
+
+            const studentsSnapshot = await db.collection('classes').doc(currentClassId).collection('students').get();
+            
+            const ws = XLSX.utils.aoa_to_sheet([[]]);
+            
+            // Add header rows
+            XLSX.utils.sheet_add_aoa(ws, [[className, '', '', 'Attendance Report']], { origin: 'A1' });
+            XLSX.utils.sheet_add_aoa(ws, [[`Date: ${todayDate}`, '', '', `Time: ${todayTime}`]], { origin: 'A2' });
+            XLSX.utils.sheet_add_aoa(ws, [[`Class Code: ${classCode}`]], { origin: 'A3' });
+            
+            // Add a blank row for spacing
+            XLSX.utils.sheet_add_aoa(ws, [[]], { origin: 'A4' });
+
+            // Add the main table header
+            XLSX.utils.sheet_add_aoa(ws, [['Name', 'Roll Number', 'Attendance Status']], { origin: 'A5' });
+            
+            // Add student data and apply styling
+            const startRow = 6;
+            let rowIndex = startRow;
+            studentsSnapshot.forEach(doc => {
+                const student = doc.data();
+                const status = presentStudentsNames.includes(student.name) ? 'Present' : 'Absent';
+                const row = [student.name, student.rollNumber, status];
+                XLSX.utils.sheet_add_aoa(ws, [row], { origin: `A${rowIndex}` });
+                
+                // Apply styling to the "Attendance Status" column
+                const cellRef = XLSX.utils.encode_cell({ c: 2, r: rowIndex - 1 });
+                if (!ws[cellRef]) ws[cellRef] = {};
+                ws[cellRef].s = {
+                    fill: {
+                        fgColor: {
+                            rgb: status === 'Present' ? 'C6E0B4' : 'F4C7C7' // Green for Present, Red for Absent
+                        }
+                    }
+                };
+                rowIndex++;
             });
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, ws, "Attendance Report");
+            
+            const filename = `Attendance_Report_${classCode}_${today.toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+
+            showStatus('Attendance report exported to Excel!');
+            setTimeout(hideStatus, 3000);
         }
 
         // Initial app load logic
@@ -1936,18 +2006,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
