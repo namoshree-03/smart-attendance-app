@@ -1945,7 +1945,7 @@
             showStatus('Generating Excel file...');
             const today = new Date();
             const todayDate = today.toLocaleDateString();
-            const todayTime = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            const todayTime = today.toLocaleTimeString();
 
             const classDoc = await db.collection('classes').doc(currentClassId).get();
             const classData = classDoc.data();
@@ -1954,18 +1954,18 @@
 
             const studentsSnapshot = await db.collection('classes').doc(currentClassId).collection('students').get();
             
+            const attendanceData = [];
             const ws = XLSX.utils.aoa_to_sheet([[]]);
             
             // Add header rows
-            XLSX.utils.sheet_add_aoa(ws, [[className, '', '', 'Attendance Report']], { origin: 'A1' });
-            XLSX.utils.sheet_add_aoa(ws, [[`Date: ${todayDate}`, '', '', `Time: ${todayTime}`]], { origin: 'A2' });
-            XLSX.utils.sheet_add_aoa(ws, [[`Class Code: ${classCode}`]], { origin: 'A3' });
+            XLSX.utils.sheet_add_aoa(ws, [[className,'', 'Attendance Report']], { origin: 'A1' });
+            XLSX.utils.sheet_add_aoa(ws, [[`Date: ${todayDate}`, '', `Time: ${todayTime}`]], { origin: 'A2' });
             
             // Add a blank row for spacing
             XLSX.utils.sheet_add_aoa(ws, [[]], { origin: 'A4' });
 
             // Add the main table header
-            XLSX.utils.sheet_add_aoa(ws, [['Name', 'Roll Number', 'Attendance Status']], { origin: 'A5' });
+            XLSX.utils.sheet_add_aoa(ws, [['Name', 'Roll Number', 'Attendance']], { origin: 'A5' });
             
             // Add student data and apply styling
             const startRow = 6;
