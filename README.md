@@ -65,7 +65,15 @@ flutter run
 - Face Recognition Model – matches detected faces with enrolled students.
 - Attendance Mapping Logic – marks attendance and syncs with cloud.
 
+---
 
+## 🌐 Live Demo & Deployment
+
+The Smart Attendance App web interface is hosted using GitHub Pages.
+
+**🔗 [View Live Application Here](https://namoshree-03.github.io/smart-attendance-app/)**
+
+---
 
 
 
