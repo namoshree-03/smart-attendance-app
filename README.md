@@ -59,7 +59,7 @@ flutter run
 
 ---
 
-🛠 Tech Stack
+## 🛠 Tech Stack
 
 - Frontend: Flutter, HTML, CSS
 - Backend: Python, Firebase, Google Cloud
@@ -67,7 +67,7 @@ flutter run
 
 ---
 
-🤖 Models Used
+## 🤖 Models Used
 
 - Face Detection Model – detects multiple faces in classroom photo.
 - Face Recognition Model – matches detected faces with enrolled students.
