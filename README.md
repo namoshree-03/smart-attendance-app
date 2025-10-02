@@ -32,24 +32,6 @@ git clone https://github.com/namoshree-03/smart-attendance-system.git
 cd smart-attendance-app
 ```
 
-### 2. Install Dependencies
-
-For the frontend (Flutter), navigate to the project root and get the necessary packages:
-
-```bash
-flutter pub get
-```
-### 3. Set up Firebase
-
-- Enable Firestore Database
-- Enable Firebase Authentication
-- Add your google-services.json (`for Android`) or GoogleService-Info.plist (`for iOS`).
-### 4. Run the App
-```bash
-flutter run
-```
----
-
 🚀 How to Use
 
 - Teacher/admin uploads student faces during enrollment.
@@ -61,7 +43,7 @@ flutter run
 
 ## 🛠 Tech Stack
 
-- Frontend: Flutter, HTML, CSS
+- Frontend: HTML, CSS, Javascript
 - Backend: Python, Firebase, Google Cloud
 - AI/ML: Face Recognition (ML Kit / Cloud Vision)
 
