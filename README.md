@@ -13,6 +13,14 @@ Smart Attendance App is an **AI-powered classroom attendance system** that repla
 
 ---
 
+## 🌐 Live Demo & Deployment
+
+The Smart Attendance App web interface is hosted using GitHub Pages.
+
+**🔗 [View Live Application Here](https://namoshree-03.github.io/smart-attendance-app/)**
+
+---
+
 ## 🛠️ How to Set up the Project
 
 ### 1. Clone the Repository
@@ -67,13 +75,7 @@ flutter run
 
 ---
 
-## 🌐 Live Demo & Deployment
 
-The Smart Attendance App web interface is hosted using GitHub Pages.
-
-**🔗 [View Live Application Here](https://namoshree-03.github.io/smart-attendance-app/)**
-
----
 
 
 
