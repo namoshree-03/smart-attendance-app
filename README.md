@@ -17,7 +17,7 @@ Smart Attendance App is an **AI-powered classroom attendance system** that repla
 
 The Smart Attendance App web interface is hosted using GitHub Pages.
 
-**🔗 [View Live Application Here](https://namoshree-03.github.io/smart-attendance-app/)**
+**🔗 [View Live Application Here](https://namoshree-03.github.io/smart-attendance-system/)**
 
 ---
 
@@ -28,7 +28,7 @@ The Smart Attendance App web interface is hosted using GitHub Pages.
 Clone the project locally and navigate into the application directory.
 
 ```bash
-git clone https://github.com/namoshree-03/smart-attendance-app.git
+git clone https://github.com/namoshree-03/smart-attendance-system.git
 cd smart-attendance-app
 ```
 
