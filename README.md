@@ -8,7 +8,6 @@ Smart Attendance App is an **AI-powered classroom attendance system** that repla
 
 - Automates attendance using **face recognition**
 - Provides **real-time attendance reports** to teachers & admins
-- Works in **offline mode** and syncs data to the cloud later
 - Prevents **proxy attendance & manual errors**
 - Scalable to integrate with **LMS/ERP systems**
 
@@ -21,5 +20,46 @@ Smart Attendance App is an **AI-powered classroom attendance system** that repla
 Clone the project locally and navigate into the application directory.
 
 ```bash
-git clone [https://github.com/namoshree-03/smart-attendance-app.git](https://github.com/namoshree-03/smart-attendance-app.git)
+git clone https://github.com/namoshree-03/smart-attendance-app.git
 cd smart-attendance-app
+```
+
+### 2. Install Dependencies
+
+For the frontend (Flutter), navigate to the project root and get the necessary packages:
+
+```bash
+flutter pub get
+```
+### 3. Set up Firebase
+
+- Enable Firestore Database
+- Enable Firebase Authentication
+- Add your google-services.json (`for Android`) or GoogleService-Info.plist (`for iOS`).
+### 4. Run the App
+```bash
+flutter run
+```
+🚀 How to Use
+
+- Teacher/admin uploads student faces during enrollment.
+- In class, teacher clicks “Take Attendance” → app captures classroom photo.
+- Face Recognition Model identifies students and marks attendance automatically.
+- Attendance records are stored in Firebase and available instantly.
+
+🛠 Tech Stack
+
+- Frontend: Flutter, HTML
+- Backend: Firebase, Google Cloud
+- AI/ML: Face Recognition (ML Kit / Cloud Vision)
+
+🤖 Models Used
+
+- Face Detection Model – detects multiple faces in classroom photo.
+- Face Recognition Model – matches detected faces with enrolled students.
+- Attendance Mapping Logic – marks attendance and syncs with cloud.
+
+
+
+
+
