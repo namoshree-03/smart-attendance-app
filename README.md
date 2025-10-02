@@ -1,12 +1,12 @@
-# Smart Attendance App ⚡
+# Smart Attendance System ⚡
 
-Smart Attendance App is an **AI-powered classroom attendance system** that replaces traditional registers. By combining **facial recognition, cloud storage, and real-time reporting**, it ensures accuracy, efficiency, and security in student tracking.
+Smart Attendance App is an **AI-powered classroom attendance system** that replaces traditional registers. It is a facial recognition + cloud-based system that marks attendance from a single classroom photo.
 
 ---
 
 ## 📂 Project Details 
 
-- Automates attendance using **face recognition**
+- Automates attendance in one click using **face recognition**
 - Provides **real-time attendance reports** to teachers & admins
 - Prevents **proxy attendance & manual errors**
 - Scalable to integrate with **LMS/ERP systems**
@@ -61,8 +61,8 @@ flutter run
 
 🛠 Tech Stack
 
-- Frontend: Flutter, HTML
-- Backend: Firebase, Google Cloud
+- Frontend: Flutter, HTML, CSS
+- Backend: Python, Firebase, Google Cloud
 - AI/ML: Face Recognition (ML Kit / Cloud Vision)
 
 ---
