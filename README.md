@@ -18,6 +18,7 @@ Smart Attendance App is an **AI-powered classroom attendance system** that repla
 The Smart Attendance App web interface is hosted using GitHub Pages.
 
 **🔗 [View Live Application Here](https://namoshree-03.github.io/smart-attendance-system/)**
+
 Faculty Login - faculty@gmail.com
 Student Login - student@gmail.com 
 Password for both - 123456
